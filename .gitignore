@@ -1,0 +1,9 @@
+bin/
+pkg/
+.project
+.idea/
+vendor
+/.idea/vcs.xml
+*.iml
+/storage
+*.png
