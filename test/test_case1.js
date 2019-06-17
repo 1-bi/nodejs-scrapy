@@ -1,4 +1,5 @@
-const spider = require("./modules/spider");
+const spider = require("..");
+
 
 var array = new Array();
 array.push("https://www.baidu.com/");
