@@ -1,0 +1,24 @@
+{
+  "name": "nodejs-scrapy",
+  "version": "0.0.1",
+  "description": "基于nodejs平台下使用的Scrapy模型框架组件",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1-bi/nodejs-scrapy.git"
+  },
+  "keywords": [
+    "scrapy",
+    "spider",
+    "crawler"
+  ],
+  "author": "Vicente Yuen",
+  "license": "Apache License 2.0",
+  "bugs": {
+    "url": "https://github.com/1-bi/nodejs-scrapy/issues"
+  },
+  "homepage": "https://github.com/1-bi/nodejs-scrapy#readme"
+}
