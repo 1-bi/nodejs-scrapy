@@ -40,11 +40,37 @@ function Scraper(crawler) {
         _slot.closing = true ;
     }
 
+    function enqueueScrape(response, request , spider) {
+        var slot = slot ;
+        var dfd = slot.addResponseRequest(response , request );
+
+        function finishScraping() {
+            slot.finishResponse(response, request);
+            _check_if_closing(spider , slot );
+            _scape_net(spider , slot );
+        }
+        dfd.addBoth( finishScraping );
+
+    }
+    self.enqueueScrape = enqueueScrape;
+
+
+    function handleSpiderOutput(result , request , response , spider) {
+        // calll middle process
+        _process_spidermw_output(null , request , response , spider );
+    }
+    self.handleSpiderOutput = handleSpiderOutput;
+
     // ------------ private method -----------
     function _check_if_closing(spider , slot) {
         if (slot.closing && slot.isIdle() ) {
             slot.closing.callback(spider);
         }
+    }
+
+    function _process_spidermw_output(output , request , response , spider) {
+        // --- process request spider ----
+        _crawler.getEngine().crawl(request , spider );
     }
 
 

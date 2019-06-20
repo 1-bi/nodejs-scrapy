@@ -22,13 +22,18 @@ function Slot( start_requests  , nextcall , scheduler ) {
     // 处理 Request 的生命周期
     var _inprogress = {};
 
-    var _start_requests = start_requests;
+    var _start_requests = [];
+    if (typeof start_requests  === "string") {
+        _start_requests.push(start_requests);
+    } else if ( start_requests instanceof Array )  {
+        _start_requests = _start_requests.concat( start_requests );
+    }
+
 
     var _nextcall = nextcall;
 
 
     var _scheduler = scheduler;
-
 
     function addRequest( request ) {
         _inprogress[ request ] = 1 ;
@@ -49,6 +54,16 @@ function Slot( start_requests  , nextcall , scheduler ) {
         return _nextcall;
     }
     self.getNextcall = getNextcall;
+
+    function getScheduler() {
+        return _scheduler;
+    }
+    self.getScheduler = getScheduler;
+
+    function getStartRequests() {
+        return _start_requests;
+    }
+    self.getStartRequests = getStartRequests;
 
 
     function _fireClosing() {
@@ -143,11 +158,20 @@ function ExecutionEngine( crawler ) {
     self.close = close ;
 
     function schedule(request , spider) {
-        if(_slot.scheduler.enqueueRequest(request) ) {
+
+        if(_slot.getScheduler().enqueueRequest(request) ) {
 
         }
     }
     self.schedule = schedule;
+
+    function crawl(request , spider) {
+        // ---
+        console.log("run crawl ing ");
+        self.schedule( request , spider )
+        _slot.getNextcall().schedule();
+    }
+    self.crawl = crawl ;
 
 
     /**
@@ -168,7 +192,7 @@ function ExecutionEngine( crawler ) {
 
        // init scheduler ininstance with crawler setting
        var scheduler = _scheduler_cls.fromCrawler(_crawler);
-       var startRequest = null;
+       var startRequest = oneRequest;
 
        //  定义 Request 处理的生命周期
        var slot = new Slot(startRequest, nextcall, scheduler);
@@ -179,6 +203,9 @@ function ExecutionEngine( crawler ) {
        scheduler.open(_spider);
        _scraper.openSpider(_spider);
 
+
+       // --- call curent object
+        // should be get the current object
 
        slot.getNextcall().schedule();
 
@@ -198,7 +225,7 @@ function ExecutionEngine( crawler ) {
     function _next_request(spider) {
         // --- start download from scheduler ---
         var slot = _slot;
-        if ( slot == undefine ) {
+        if ( slot == undefined ) {
             return ;
         }
 
@@ -206,9 +233,51 @@ function ExecutionEngine( crawler ) {
             return ;
         }
 
+        // neet to backout
+        if (!_needs_backout(_spider) ) {
+
+            _next_request_from_scheduler(_spider);
+        }
+
+        if ( slot.getStartRequests() && !_needs_backout(_spider) ) {
+
+            try {
+                var request = next( slot.getStartRequests() );
+                crawl(request , spider );
+            } catch (e) {
+                console.log( e );
+            }
+        }
     }
 
+    function next(instArray) {
+        return instArray.pop();
+    }
+
+
+    function _needs_backout(spider) {
+        var backout = false ;
+        var slot = _slot;
+
+        var backout = _running || slot._closing
+    }
+
+    function _next_request_from_scheduler(spider) {
+        var slot = _slot;
+        var request = slot.getScheduler().nextRequest();
+
+
+        // not found request
+        if (!request) {
+            return
+        }
+
+        var d = _download(request , spider);
+    }
+
+
     function _download(request, spider) {
+
 
         function _on_success(response) {
 
@@ -217,6 +286,9 @@ function ExecutionEngine( crawler ) {
         function _on_complete() {
 
         }
+
+        console.log(" --------- download ");
+        console.log(_downloader);
 
         var dwld = _downloader.fetch(request ,spider);
         dwld.addCallbacks(_on_success);

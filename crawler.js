@@ -46,7 +46,7 @@ function Crawler(spi ,  settings) {
     // 执行核心引擎
     var _engine;
 
-    // init project
+    // init project ，初始化相关变量
     (function() {
 
     })();
@@ -56,6 +56,11 @@ function Crawler(spi ,  settings) {
         return _settings;
     }
     self.getSettings = getSettings;
+
+    function getEngine() {
+        return _engine;
+    }
+    self.getEngine = getEngine;
 
 
 
@@ -101,7 +106,7 @@ function Crawler(spi ,  settings) {
             var startRequests = _spider.getStartRequests().shift() ;
 
             // --- open engine splider request , 执行引擎的open_spider，并传入爬虫实例和初始请求
-            _engine.openSpider(_spider, startRequests)
+            _engine.openSpider(_spider, startRequests) ;
 
             // ---- 启动执行，发送引擎运作信号 ---
             _engine.start();

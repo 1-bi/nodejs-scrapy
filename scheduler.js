@@ -28,10 +28,21 @@ function Scheduler() {
 
     function enqueueRequest(request) {
 
+        _mqpush(request);
+
     }
     self.enqueueRequest = enqueueRequest ;
 
     function nextRequest() {
+
+
+        var request = self.mqs.pop();
+
+        if (request) {
+            // --- add state count
+        }
+
+        return request ;
 
     }
     self.nextRequest = nextRequest;
@@ -51,6 +62,11 @@ function Scheduler() {
 
     function _newmq() {
         return new self._mqclass();
+    }
+
+    function _mqpush(request) {
+        self.mqs.push(request);
+        // --- set priority ---
     }
 
 }
