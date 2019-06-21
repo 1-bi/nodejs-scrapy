@@ -1,4 +1,5 @@
 const util = require('util');
+const utils = require('../utils');
 var common = require("../common");
 
 function DownloaderMiddlewareManager() {
@@ -23,7 +24,11 @@ function DownloaderMiddlewareManager() {
         //  --- call back handle ---
         process_request(request);
 
+        var deferred = utils.mustbeDeferred(process_request ,  request);
+        deferred.addErrback( process_exception );
+        deferred.addCallbacks(process_response);
 
+        return deferred;
 
     }
     self.download = download ;

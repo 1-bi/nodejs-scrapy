@@ -37,9 +37,15 @@ function Downloader(crawler) {
 
     function fetch(request, spider) {
 
+        function _deactivate(response) {
+            return response;
+        }
+
 
         // active_add(request)
-        _middleware.download(request, spider);
+        var dfd = _middleware.download(request, spider);
+        dfd.addBoth(_deactivate);
+        return dfd;
     }
     self.fetch = fetch ;
 

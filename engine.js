@@ -289,6 +289,7 @@ function ExecutionEngine( crawler ) {
         }
 
         var dwld = _downloader.fetch(request ,spider);
+
         dwld.addCallbacks(_on_success);
         dwld.addBoth(_on_complete);
         return dwld;
