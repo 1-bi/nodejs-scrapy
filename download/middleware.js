@@ -1,4 +1,5 @@
-
+const util = require('util');
+var common = require("../common");
 
 function DownloaderMiddlewareManager() {
 
@@ -30,11 +31,13 @@ function DownloaderMiddlewareManager() {
 }
 
 
-DownloaderMiddlewareManager.from_crawler = function(crawler) {
-
-
+DownloaderMiddlewareManager.fromCrawler = function(crawler) {
+    return common.MiddlewareManager.fromCrawler( crawler );
 }
+
+util.inherits(DownloaderMiddlewareManager, common.MiddlewareManager);
 
 
 module.exports.DownloaderMiddlewareManager = DownloaderMiddlewareManager;
 
+// ---

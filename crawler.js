@@ -1,5 +1,5 @@
 var eng = require('./engine');
-var middleware = require('./middleware');
+var middleware = require('./download/middleware');
 const pino = require('pino');
 const logger = pino({
     prettyPrint: {
@@ -90,7 +90,7 @@ function Crawler(spi ,  settings) {
     function _init() {
 
         // ---- create download object ---
-        var mw  = middleware.DownloaderMiddlewareManager.from_crawler(self);
+        var mw  = middleware.DownloaderMiddlewareManager.fromCrawler(self);
 
 
     }

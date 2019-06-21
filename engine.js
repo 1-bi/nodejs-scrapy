@@ -91,6 +91,7 @@ function ExecutionEngine( crawler ) {
 
 
     var _downloader  = null;
+    var _downloader_cls = _settings.properties["DOWNLOADER"];
 
     var _scheduler = null;
     // --- mapping class ---
@@ -106,6 +107,7 @@ function ExecutionEngine( crawler ) {
     // init project
     (function () {
         _scheduler = _settings.getScheduler();
+        _downloader = new _downloader_cls(crawler);
     })();
 
 
@@ -235,7 +237,6 @@ function ExecutionEngine( crawler ) {
 
         // neet to backout
         if (!_needs_backout(_spider) ) {
-
             _next_request_from_scheduler(_spider);
         }
 
@@ -253,7 +254,6 @@ function ExecutionEngine( crawler ) {
     function next(instArray) {
         return instArray.pop();
     }
-
 
     function _needs_backout(spider) {
         var backout = false ;
