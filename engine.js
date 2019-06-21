@@ -168,9 +168,11 @@ function ExecutionEngine( crawler ) {
     self.schedule = schedule;
 
     function crawl(request , spider) {
-        // ---
-        console.log("run crawl ing ");
-        self.schedule( request , spider )
+        // check the spider input exist in define
+
+        logger.debug({req: request} , " run crawl for request ");
+
+        self.schedule( request , spider );
         _slot.getNextcall().schedule();
     }
     self.crawl = crawl ;
@@ -246,7 +248,7 @@ function ExecutionEngine( crawler ) {
                 var request = next( slot.getStartRequests() );
                 crawl(request , spider );
             } catch (e) {
-                console.log( e );
+                logger.error(e);
             }
         }
     }

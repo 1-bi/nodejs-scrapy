@@ -26,8 +26,6 @@ function Deferred() {
 }
 
 
-
-
 function  deferSucceed(result) {
 
     var successDefer = new Deferred();
