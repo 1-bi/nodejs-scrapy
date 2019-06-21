@@ -92,7 +92,6 @@ function Crawler(spi ,  settings) {
         // ---- create download object ---
         var mw  = middleware.DownloaderMiddlewareManager.fromCrawler(middleware.DownloaderMiddlewareManager, self);
 
-
     }
 
     //  map class  Crawler crawl method
