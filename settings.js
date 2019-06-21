@@ -34,6 +34,11 @@ function Settings() {
             'https': {}
         };
 
+        self.properties["DOWNLOADER_MIDDLEWARES"] = {
+        };
+
+
+
 
 
 

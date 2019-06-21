@@ -29,13 +29,14 @@ function Downloader(crawler) {
         //self.domain_concurrency = self.settings.getint('CONCURRENT_REQUESTS_PER_DOMAIN')
        // self.ip_concurrency = self.settings.getint('CONCURRENT_REQUESTS_PER_IP')
        // self.randomize_delay = self.settings.getbool('RANDOMIZE_DOWNLOAD_DELAY')
-        self.middleware = middleware.DownloaderMiddlewareManager.fromCrawler(crawler)
+        _middleware = middleware.DownloaderMiddlewareManager.fromCrawler(middleware.DownloaderMiddlewareManager, crawler)
         //self._slot_gc_loop = task.LoopingCall(self._slot_gc)
        // self._slot_gc_loop.start(60)
     })();
 
 
     function fetch(request, spider) {
+
 
         // active_add(request)
         _middleware.download(request, spider);

@@ -287,9 +287,6 @@ function ExecutionEngine( crawler ) {
 
         }
 
-        console.log(" --------- download ");
-        console.log(_downloader);
-
         var dwld = _downloader.fetch(request ,spider);
         dwld.addCallbacks(_on_success);
         dwld.addBoth(_on_complete);

@@ -31,8 +31,15 @@ function DownloaderMiddlewareManager() {
 }
 
 
-DownloaderMiddlewareManager.fromCrawler = function(crawler) {
-    return common.MiddlewareManager.fromCrawler( crawler );
+DownloaderMiddlewareManager._get_mwlist_from_settings  = function(cls, settings) {
+    var list = [];
+
+    return list;
+}
+
+
+DownloaderMiddlewareManager.fromCrawler = function(cls , crawler) {
+    return common.MiddlewareManager.fromCrawler( DownloaderMiddlewareManager, crawler );
 }
 
 util.inherits(DownloaderMiddlewareManager, common.MiddlewareManager);

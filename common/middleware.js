@@ -47,13 +47,35 @@ function MiddlewareManager(middlewares) {
 }
 
 
-MiddlewareManager.fromSettings =  function(settings , crawler) {
+MiddlewareManager.fromSettings =  function(cls , settings , crawler) {
+    if ( !cls._get_mwlist_from_settings ) {
+        throw "Not implement middelet manager.";
+    }
+    var mwlist = cls._get_mwlist_from_settings(cls, settings);
+    var middlewares = [];
+    var enabled = [];
+
+    for (var i = 0 ; i < mwlist.length ; i++) {
+        // --- create middleware instance ---
+        try {
+
+        } catch (e) {
+            console.log("----------- output log ");
+            console.log(e );
+        }
+
+    }
+
+
+    return new cls(middlewares);
+
+
+
 
 };
 
-MiddlewareManager.fromCrawler = function(crawler) {
-
-    return MiddlewareManager.fromSettings(crawler.getSettings() , crawler );
+MiddlewareManager.fromCrawler = function(cls , crawler) {
+    return MiddlewareManager.fromSettings(cls , crawler.getSettings() , crawler );
 };
 
 

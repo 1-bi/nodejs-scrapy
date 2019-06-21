@@ -90,7 +90,7 @@ function Crawler(spi ,  settings) {
     function _init() {
 
         // ---- create download object ---
-        var mw  = middleware.DownloaderMiddlewareManager.fromCrawler(self);
+        var mw  = middleware.DownloaderMiddlewareManager.fromCrawler(middleware.DownloaderMiddlewareManager, self);
 
 
     }
