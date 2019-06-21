@@ -77,10 +77,7 @@ Settings.build = function() {
 
     var _inst = new Settings();
 
-
-
-
-    return _inst;
+   return _inst;
 
 }
 

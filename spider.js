@@ -15,23 +15,16 @@ function Spider() {
      */
     function setStartUrls( urls ) {
 
-
         if ( typeof urls  === "string" ) {
             _start_urls.push( urls);
         } else if (typeof urls  === "object" && urls instanceof Array) {
-
             _start_urls.push.apply(_start_urls, urls);
-            console.log( _start_urls  );
-
         }
-
 
     }
     self.setStartUrls = setStartUrls;
 
     function getStartRequests() {
-        console.log(_start_urls);
-
         return _start_urls
     }
     self.getStartRequests = getStartRequests;
