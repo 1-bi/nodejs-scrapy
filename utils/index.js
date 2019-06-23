@@ -93,10 +93,9 @@ function CallLaterOnce( func , spider ) {
         if (  _call["state"]  == 0 && !(_call["fun"] )  ) {
 
             setTimeout(function(){
-                console.log("--------- hello m essage ");
                 _call["state"] = 1;
                 _call["fun"] = _func(spider);
-            },1000);
+            },1);
         }
 
     }
