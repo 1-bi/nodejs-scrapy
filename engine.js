@@ -209,8 +209,7 @@ function ExecutionEngine( crawler ) {
 
 
        // --- call curent object
-        // should be get the current object
-
+       // should be get the current object
        slot.getNextcall().schedule();
 
 

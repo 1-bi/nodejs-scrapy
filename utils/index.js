@@ -82,16 +82,26 @@ function CallLaterOnce( func , spider ) {
 
     var _spider = spider ;
 
+    var _call = null;
+
     function schedule() {
         // call event ---
-        if (_func) {
-            _func(spider);
+        if ( ! _call ) {
+
+            setTimeout(function(){
+                console.log("--------- hello m essage ");
+                _call = _func(spider);
+            },1000);
         }
 
     }
     self.schedule = schedule;
 
     function cancel() {
+
+        if (_call) {
+            _call.cancel();
+        }
 
     }
     self.cancel = cancel;
