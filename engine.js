@@ -161,7 +161,8 @@ function ExecutionEngine( crawler ) {
 
     function schedule(request , spider) {
 
-        if(_slot.getScheduler().enqueueRequest(request) ) {
+        if( ! _slot.getScheduler().enqueueRequest(request) ) {
+            // send send catch log
 
         }
     }

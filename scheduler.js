@@ -27,7 +27,7 @@ function Scheduler() {
     self.close = close ;
 
     function enqueueRequest(request) {
-
+        // --- push request to queue ---
         _mqpush(request);
 
     }
