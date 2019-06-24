@@ -1,16 +1,18 @@
-const spider = require("..");
+const spider = require("../spiders");
+const settings = require("../settings");
+const Crawler = require("../crawler");
 
-
-
-var array = new Array();
+var array = [];
 array.push("https://www.baidu.com/");
 
-var spiderSettings = spider.Settings.build();
-var spi  = new spider.Splider();
+var spiderSettings = settings.Settings.build();
+
+
+var spi  = new spider.Spider();
 spi.setStartUrls( array );
 
-var crawler = new spider.Crawler(spi , spiderSettings);
+var c = new Crawler(spi , spiderSettings);
 
 // 启动爬虫动作
-crawler.start();
+c.start();
 

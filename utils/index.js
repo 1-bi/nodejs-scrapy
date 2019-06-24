@@ -98,7 +98,7 @@ function CallLaterOnce( func , spider ) {
             setTimeout(function(){
                 _call["state"] = 1;
                 _call["fun"] = _func(spider);
-            },1000);
+            },1);
         }
 
     }

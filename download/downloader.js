@@ -17,6 +17,8 @@ function Slot(concurrency , delay , randomizeDelay) {
     var _lastseen = 0 ;
     var _latercall = null;
 
+    var self = this;
+
 
     (function () {
 
@@ -48,6 +50,8 @@ function Downloader(crawler) {
     const DOWNLOAD_SLOT = "download_slot";
 
     var self = this;
+
+    var _slots = {};
 
     var  _middleware = null ;
 
@@ -126,6 +130,7 @@ function Downloader(crawler) {
     function _enqueue_request(request , spider) {
         // --- get the request spider ---
         var key, slot = _get_slot(request, spider);
+
         request.meta[DOWNLOAD_SLOT] = key;
 
         function _deactivate(response) {
@@ -174,7 +179,7 @@ function Downloader(crawler) {
 
             var conc = self.ip_concurrency;
             var delay = 0;
-            _slots[key] = new Slot(conc , deply ,   self.randomize_delay );
+            _slots[key] = new Slot(conc , delay ,  self.randomize_delay );
         }
 
         return key , _slots[key];

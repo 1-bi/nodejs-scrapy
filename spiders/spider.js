@@ -72,4 +72,4 @@ function Spider() {
 
 
 }
-module.exports.Splider = Spider;
+module.exports = Spider;

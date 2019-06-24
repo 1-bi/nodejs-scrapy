@@ -126,7 +126,6 @@ function Crawler(spi ,  settings) {
         var engine = new eng.ExecutionEngine(self);
 
 
-
         engine.stop();
         return engine;
     }
@@ -136,4 +135,5 @@ function Crawler(spi ,  settings) {
 
 
 }
-module.exports.Crawler = Crawler;
+
+module.exports = Crawler;

@@ -1,7 +1,7 @@
-var pkgScheduler = require('./scheduler');
-var queue = require("./queue/memory");
-var pipelines = require("./pipelines/itemmanager");
-var download = require("./download/downloader");
+var pkgScheduler = require('../scheduler');
+var queue = require("../queue/memory");
+var pipelines = require("../pipelines/itemmanager");
+var download = require("../download/downloader");
 
 
 
@@ -86,4 +86,4 @@ Settings.build = function() {
 }
 
 
-module.exports.Settings = Settings;
+module.exports = Settings;
