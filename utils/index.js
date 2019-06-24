@@ -1,3 +1,4 @@
+const url = require('url');
 
 // ---- create defere handle
 function Deferred() {
@@ -88,14 +89,16 @@ function CallLaterOnce( func , spider ) {
 
     function schedule() {
 
+        console.log("output --------- message ");
+        console.log( _call );
 
         // call event ---
-        if (  _call["state"]  == 0 && !(_call["fun"] )  ) {
+        if ( !(_call["fun"] )  ) {
 
             setTimeout(function(){
                 _call["state"] = 1;
                 _call["fun"] = _func(spider);
-            },1);
+            },1000);
         }
 
     }
@@ -111,14 +114,27 @@ function CallLaterOnce( func , spider ) {
     self.cancel = cancel;
 
     // --- up caller ---
+}
 
 
+function urlparseCached(request) {
+    var urlObj = url.parse(request);
+
+    var parseCache = {
+        schema : urlObj.protocol,
+        host: urlObj.host,
+        hostname: urlObj.hostname,
+        query: urlObj.query,
+        pathname: urlObj.pathname
+    };
+    return parseCache;
 
 }
 
 
-
 module.exports = {
+    Deferred : Deferred ,
     mustbeDeferred  : mustbeDeferred ,
+    urlparseCached : urlparseCached ,
     CallLaterOnce : CallLaterOnce
 };

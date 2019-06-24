@@ -29,9 +29,7 @@ function Slot( start_requests  , nextcall , scheduler ) {
         _start_requests = _start_requests.concat( start_requests );
     }
 
-
     var _nextcall = nextcall;
-
 
     var _scheduler = scheduler;
 
@@ -161,6 +159,8 @@ function ExecutionEngine( crawler ) {
 
     function schedule(request , spider) {
 
+
+        // --- call schedule , enqueueRequest
         if( ! _slot.getScheduler().enqueueRequest(request) ) {
             // send send catch log
 
@@ -170,9 +170,7 @@ function ExecutionEngine( crawler ) {
 
     function crawl(request , spider) {
         // check the spider input exist in define
-
         logger.debug({req: request} , " run crawl for request ");
-
         self.schedule( request , spider );
         _slot.getNextcall().schedule();
     }
@@ -212,7 +210,6 @@ function ExecutionEngine( crawler ) {
        // --- call curent object
        // should be get the current object
        slot.getNextcall().schedule();
-
 
     }
     self.openSpider = openSpider;
@@ -266,15 +263,22 @@ function ExecutionEngine( crawler ) {
 
     function _next_request_from_scheduler(spider) {
         var slot = _slot;
-        var request = slot.getScheduler().nextRequest();
 
+        var request = slot.getScheduler().nextRequest();
 
         // not found request
         if (!request) {
+            logger.info("Url requested from scheduler is undefined. ");
             return
         }
 
         var d = _download(request , spider);
+        d.addBoth(_handle_downloader_output, request , spider );
+    }
+
+    // --- not implement
+    function _handle_downloader_output( response , request , spider  ) {
+
     }
 
 

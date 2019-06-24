@@ -37,6 +37,10 @@ function Settings() {
         self.properties["DOWNLOADER_MIDDLEWARES"] = {
         };
 
+        self.properties["CONCURRENT_REQUESTS_PER_IP"] = 0;
+        self.properties["RANDOMIZE_DOWNLOAD_DELAY"] = true;
+
+
 
 
 

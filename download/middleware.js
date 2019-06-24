@@ -6,10 +6,12 @@ function DownloaderMiddlewareManager() {
 
     var self = this;
 
-    function download(request, spider) {
+    function download(downloadFunc , request, spider) {
 
         function process_request(request) {
 
+            // call back
+            downloadFunc(request , spider);
         }
 
         function process_response(response) {

@@ -29,7 +29,6 @@ function Scheduler() {
     function enqueueRequest(request) {
         // --- push request to queue ---
         _mqpush(request);
-
     }
     self.enqueueRequest = enqueueRequest ;
 
@@ -41,6 +40,7 @@ function Scheduler() {
         if (request) {
             // --- add state count
         }
+
 
         return request ;
 
@@ -65,6 +65,7 @@ function Scheduler() {
     }
 
     function _mqpush(request) {
+
         self.mqs.push(request);
         // --- set priority ---
     }
