@@ -30,7 +30,7 @@ function Spider() {
     self.setStartUrls = setStartUrls;
 
     function getStartRequests() {
-        return _start_urls
+        return _start_urls;
     }
     self.getStartRequests = getStartRequests;
 

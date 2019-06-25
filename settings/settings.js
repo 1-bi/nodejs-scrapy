@@ -37,14 +37,10 @@ function Settings() {
         self.properties["DOWNLOADER_MIDDLEWARES"] = {
         };
 
+
+        self.properties["CONCURRENT_REQUESTS_PER_DOMAIN"] = 8;
         self.properties["CONCURRENT_REQUESTS_PER_IP"] = 0;
         self.properties["RANDOMIZE_DOWNLOAD_DELAY"] = true;
-
-
-
-
-
-
 
 
     })();
@@ -54,6 +50,18 @@ function Settings() {
         return self._scheduler;
     }
     self.getScheduler = getScheduler;
+
+
+    function  getInt(key) {
+        var value = self.properties[key];
+        if (typeof value === "string") {
+            return parseInt(value, 10);
+        } else {
+            return value ;
+        }
+    }
+    self.getInt = getInt;
+
 
 }
 

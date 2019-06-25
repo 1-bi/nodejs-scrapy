@@ -98,7 +98,7 @@ function CallLaterOnce( func , spider ) {
             setTimeout(function(){
                 _call["state"] = 1;
                 _call["fun"] = _func(spider);
-            },1);
+            },1000);
         }
 
     }
@@ -118,10 +118,15 @@ function CallLaterOnce( func , spider ) {
 
 
 function urlparseCached(request) {
-    var urlObj = url.parse(request);
+    /**
+     Return urlparse.urlparse caching the result, where the argument can be a
+     Request or Response object
+     * @type {number | any}
+     */
+    var urlObj = url.parse(request.getUrl() );
 
     var parseCache = {
-        schema : urlObj.protocol,
+        scheme : urlObj.protocol.replace(":",""),
         host: urlObj.host,
         hostname: urlObj.hostname,
         query: urlObj.query,

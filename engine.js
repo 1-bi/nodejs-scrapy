@@ -23,10 +23,10 @@ function Slot( start_requests  , nextcall , scheduler ) {
     var _inprogress = {};
 
     var _start_requests = [];
-    if (typeof start_requests  === "string") {
-        _start_requests.push(start_requests);
-    } else if ( start_requests instanceof Array )  {
+    if ( start_requests instanceof Array )  {
         _start_requests = _start_requests.concat( start_requests );
+    } else {
+        _start_requests.push( start_requests );
     }
 
     var _nextcall = nextcall;
@@ -158,8 +158,6 @@ function ExecutionEngine( crawler ) {
     self.close = close ;
 
     function schedule(request , spider) {
-
-
         // --- call schedule , enqueueRequest
         if( ! _slot.getScheduler().enqueueRequest(request) ) {
             // send send catch log
@@ -215,6 +213,7 @@ function ExecutionEngine( crawler ) {
     self.openSpider = openSpider;
 
     function download(request, spider)  {
+
         var d = _download(request, spider);
         d.addBoth(_downloaded , _slot , request , spider );
         return d ;
@@ -239,10 +238,12 @@ function ExecutionEngine( crawler ) {
             _next_request_from_scheduler(_spider);
         }
 
-        if ( slot.getStartRequests() && !_needs_backout(_spider) ) {
 
+        // --- call next request ---
+        if ( slot.getStartRequests().length > 0  && !_needs_backout(_spider) ) {
             try {
                 var request = next( slot.getStartRequests() );
+
                 crawl(request , spider );
             } catch (e) {
                 logger.error(e);

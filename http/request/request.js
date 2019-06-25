@@ -37,14 +37,23 @@ function Request(url) {
     }
 
 
+    function  getUrl(){
+        return _get_url();
+    }
+    self.getUrl = getUrl;
+
+
     // ---- private url ---
     function  _set_url(url) {
-
+        _url = url;
+        return _url;
     }
 
     function _get_url() {
         return _url ;
     }
+
+
 
 
 
