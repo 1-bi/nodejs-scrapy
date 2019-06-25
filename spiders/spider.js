@@ -1,3 +1,5 @@
+const req = require('../http/request');
+
 /**
  * 解析器，负责解析页面内容，输入是HTML的response，输出是结构化的Items；
  * @constructor
@@ -6,7 +8,7 @@ function Spider() {
     var self = this;
 
 
-
+    // --- add new quest
     var _start_urls = [];
 
     /**
@@ -16,9 +18,12 @@ function Spider() {
     function setStartUrls( urls ) {
 
         if ( typeof urls  === "string" ) {
-            _start_urls.push( urls);
+            _start_urls.push( makeRequestsFromUrl(urls) );
         } else if (typeof urls  === "object" && urls instanceof Array) {
-            _start_urls.push.apply(_start_urls, urls);
+
+            for (var i = 0 ; i < urls.length ; i++) {
+                _start_urls.push( makeRequestsFromUrl(urls[i]) );
+            }
         }
 
     }
@@ -28,6 +33,14 @@ function Spider() {
         return _start_urls
     }
     self.getStartRequests = getStartRequests;
+
+    function  makeRequestsFromUrl(url) {
+        // url -> mapping , dont_filter = true
+        return new req.Request(url, true);
+    }
+    self.makeRequestsFromUrl = makeRequestsFromUrl;
+
+
 
 
 
