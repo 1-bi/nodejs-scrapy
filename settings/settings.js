@@ -2,12 +2,14 @@ var pkgScheduler = require('../scheduler');
 var queue = require("../queue/memory");
 var pipelines = require("../pipelines/itemmanager");
 var download = require("../download/downloader");
+var pkgDownloadHandler = require("../download/handlers");
 
 
 
 function Settings() {
 
     var self = this ;
+
 
 
     var _scheduler = new pkgScheduler.Scheduler();
@@ -31,7 +33,7 @@ function Settings() {
             'data': {},
             'file': {},
             'http': {},
-            'https': {}
+            'https': pkgDownloadHandler.HttpsDownload
         };
 
         self.properties["DOWNLOADER_MIDDLEWARES"] = {

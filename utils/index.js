@@ -89,9 +89,6 @@ function CallLaterOnce( func , spider ) {
 
     function schedule() {
 
-        console.log("output --------- message ");
-        console.log( _call );
-
         // call event ---
         if ( !(_call["fun"] )  ) {
 
