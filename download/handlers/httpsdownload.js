@@ -21,6 +21,12 @@ function HttpsDownloadHandler(crawler) {
         return "";
     }
     self.downloadRequest = downloadRequest;
+
+
+    function close() {
+
+    }
+    self.close = close ;
 }
 
 
