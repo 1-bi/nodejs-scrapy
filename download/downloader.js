@@ -115,6 +115,9 @@ function Downloader(crawler) {
 
         // # 2. Notify response_downloaded listeners about the recent download
         function _downloaded(response) {
+            // --- receive response result ---
+
+
             return response;
         }
         dfd.addCallbacks(_downloaded);
