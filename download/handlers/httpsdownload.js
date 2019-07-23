@@ -34,6 +34,12 @@ function PuppeteerAgent() {
 
     var self = this;
 
+    var _puppeterrConfig = {
+        headless : false ,
+        devtools :  true ,
+        executablePath  : 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
+    };
+
 
     function downloadRequest(request ) {
 
@@ -41,12 +47,9 @@ function PuppeteerAgent() {
 
         (async () => {
 
-            const browser = await puppeteer.launch({headless:false,
-
-                devtools: true,
-
-                executablePath: 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'});
-
+            const browser = await puppeteer.launch({headless:_puppeterrConfig["headless"],
+                devtools: _puppeterrConfig["devtools"],
+                executablePath: _puppeterrConfig["executablePath"]});
             //const browser = await puppeteer.launch({headless:false, devtools: true, args: ['--remote-debugging-port=9222'] } );
 
             const page = await browser.newPage();
@@ -55,6 +58,7 @@ function PuppeteerAgent() {
 
             await browser.close();
         })();
+
 
         return "";
     }
