@@ -25,8 +25,6 @@ function Settings() {
         self.properties["SCHEDULER_CLASS"] = pkgScheduler.Scheduler;
         self.properties["SCHEDULER_MEMORY_QUEUE"] = queue.Memory;
 
-
-
         self.properties["DOWNLOADER"] = download.Downloader;
 
         self.properties["DOWNLOAD_HANDLERS"] = {

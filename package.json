@@ -1,5 +1,5 @@
 {
-  "name": "nodejs-scrapy",
+  "name": "@1-bi/nodejs-scrapy",
   "version": "0.0.1",
   "description": "基于nodejs平台下使用的Scrapy模型框架组件",
   "main": "index.js",
