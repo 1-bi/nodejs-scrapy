@@ -1,12 +1,11 @@
-var crawler = require('./crawler');
-var splider = require('./spiders/spider');
-var scheduler = require('./scheduler');
-var settings = require('./settings/settings');
-
+var Crawler = require('./crawler')
+var splider = require('./spiders')
+var scheduler = require('./scheduler')
+var settings = require('./settings')
 
 module.exports = {
-    Crawler : crawler.Crawler,
-    Splider: splider.Splider,
+    Crawler : Crawler,
+    Splider: splider.Spider,
     Scheduler: scheduler.Scheduler,
     Settings: settings.Settings
 };

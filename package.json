@@ -1,6 +1,6 @@
 {
   "name": "nodejs-scrapy",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "基于nodejs平台下使用的Scrapy模型框架组件",
   "main": "index.js",
   "scripts": {
@@ -26,5 +26,10 @@
     "pino": "^5.12.6",
     "pino-pretty": "^3.1.0",
     "puppeteer-core": "^1.18.1"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "jsdoc": "^3.6.3",
+    "mocha": "^6.2.2"
   }
 }

@@ -80,9 +80,5 @@ function Spider() {
     }
     self.getRules = getRules;
 
-
-
-
-
 }
 module.exports = Spider;
