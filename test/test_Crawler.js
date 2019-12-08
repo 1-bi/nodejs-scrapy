@@ -2,7 +2,7 @@ var assert = require('chai').assert
 var expect = require('chai').expect
 require('chai').should()
 
-var scrapy = require('../index')
+const {Crawler, Spider, Scheduler , Settings} = require('../index')
 
 
 /**
@@ -23,12 +23,25 @@ describe('Crawler', function(){
         // runs after each test in this block
     })
 
-    describe('create()', function(){
-        console.log( scrapy )
+    describe('#create and start crawler', function(){
+
+        var array = []
+        array.push("https://www.baidu.com/")
+
+        var spiderSettings = Settings.build()
+
 
 
         // --- return ok
-        it('should return ok when test finished', function(done){
+        it('start crawler ok', function(done){
+            var spi  = new Spider()
+            spi.setStartUrls( array )
+
+            var c = new Crawler(spi , spiderSettings)
+
+            // 启动爬虫动作
+            c.start()
+
 
             done()
         })
