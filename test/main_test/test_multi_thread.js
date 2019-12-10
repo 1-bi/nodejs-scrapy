@@ -19,11 +19,11 @@ function workerThread() {
     parentPort.on('message', msg => {
         console.log(`worker: receive ${msg}`);
         if (msg === 5) {
-            process.exit();
+            //process.exit();
         }
         setTimeout(function() {
             console.log(msg)
-            parentPort.postMessage(msg);
+            //parentPort.postMessage(msg);
 
         },5000)
     }),

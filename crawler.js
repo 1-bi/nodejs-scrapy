@@ -1,6 +1,3 @@
-const {  isMainThread, parentPort, workerData, threadId,
-    MessageChannel, MessagePort, Worker } = require('worker_threads')
-
 var eng = require('./engine');
 var middleware = require('./download/middleware');
 const pino = require('pino');
@@ -17,37 +14,37 @@ const logger = pino({
  */
 function Crawler(spi ,  settings) {
 
-    var self = this;
+    var self = this
 
     // 网页下载器
-    var _downloader;
+    var _downloader
 
     // 爬虫调度器
-    var _scheudler;
+    var _scheudler
 
     // 网页解析器
-    var _pageParser;
+    var _pageParser
 
     // 数据处理器
-    var _pipeline;
+    var _pipeline
 
 
 
     // 爬虫运行设置
-    var _settings;
+    var _settings
     if (settings)  {
-        _settings = settings;
+        _settings = settings
     }
 
 
     //  --- set the crawling status ---
-    var _crawling = false;
+    var _crawling = false
 
     // 爬虫执行逻辑
-    var _spider = spi;
+    var _spider = spi
 
     // 执行核心引擎
-    var _engine;
+    var _engine
 
     // init project ，初始化相关变量
     (function() {
@@ -56,12 +53,12 @@ function Crawler(spi ,  settings) {
 
 
     function getSettings() {
-        return _settings;
+        return _settings
     }
     self.getSettings = getSettings;
 
     function getEngine() {
-        return _engine;
+        return _engine
     }
     self.getEngine = getEngine;
 
@@ -74,11 +71,6 @@ function Crawler(spi ,  settings) {
 
         // --- get pendding url  ----
         _init()
-
-        if (isMainThread) {
-            let worker = new Worker(__filename, { workerData: 0 });
-        }
-
 
         // ---  开始爬虫 ---
         let defered = _crawl()
@@ -111,10 +103,6 @@ function Crawler(spi ,  settings) {
 
         _crawling = true
 
-
-
-
-
         try {
             _engine = _create_engine();
 
@@ -126,7 +114,7 @@ function Crawler(spi ,  settings) {
 
 
             // ---- 启动执行，发送引擎运作信号 ---
-            return _engine.start();
+            _engine.start();
 
         } catch (e) {
 

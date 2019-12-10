@@ -23,7 +23,8 @@ function Scraper(crawler) {
     var _itemproc = itemproc_cls.fromCrawler(crawler) ;
 
     function openSpider(spider) {
-
+        let self = this
+        console.log( engine )
         _slot = new engine.Slot();
         _itemproc.openSpider( spider );
     }
