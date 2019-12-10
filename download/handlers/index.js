@@ -1,6 +1,10 @@
-var httpsdownload = require('./httpsdownload');
+//var httpsdownload = require('./httpsdownload')
+var Embbed = require('./hdi/embbed')
+var Putteteer = require('./hdi/puppeteer')
+
 
 
 module.exports = {
-    HttpsDownload : httpsdownload
+    Embbed : Embbed,
+    Putteteer : Putteteer
 };

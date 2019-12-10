@@ -1,6 +1,6 @@
-const spider = require("../spiders");
-const settings = require("../settings");
-const Crawler = require("../crawler");
+const spider = require("../../spiders");
+const settings = require("../../settings");
+const Crawler = require("../../crawler");
 
 var array = [];
 array.push("https://www.baidu.com/");

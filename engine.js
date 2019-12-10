@@ -1,12 +1,15 @@
-const pino = require('pino');
+// --- set the multi-thread ---
+const {  isMainThread, parentPort, workerData, threadId,
+    MessageChannel, MessagePort, Worker } = require('worker_threads')
+const pino = require('pino')
 const logger = pino({
     prettyPrint: {
         levelFirst: true
     },
     prettifier: require('pino-pretty')
 });
-const utils = require('./utils');
-const scraper = require('./scraper');
+const utils = require('./utils')
+const scraper = require('./scraper')
 
 
 /**
@@ -119,18 +122,18 @@ function ExecutionEngine( crawler ) {
     }
     self.setScheduler = setScheduler;
 
-    function start() {
+    async function start() {
         // Start the execution engine
         if (_running) {
             throw "Engine already running"
         }
 
-        self.start_time = Date.now();
+        self.start_time = Date.now()
 
         // --- start engine , 发送引擎开始执行的信号
-        _running = true ;
+        _running = true
 
-        // --- 发送正在关闭的信号 ---
+        // --- 等待关闭的信号 ---
 
 
     }
@@ -186,10 +189,11 @@ function ExecutionEngine( crawler ) {
            logger.info({"spider": spiderInst },"Spider opened")
        }
 
+
        var  nextcall = new utils.CallLaterOnce(_next_request, spiderInst);
 
        //  call next request
-       // _next_request(spiderInst)
+
 
        // init scheduler ininstance with crawler setting
        var scheduler = _scheduler_cls.fromCrawler(_crawler);
@@ -223,30 +227,33 @@ function ExecutionEngine( crawler ) {
 
     // ------------------ private method ------
     function _next_request(spider) {
+        // --- deflay for call object ---
+
+
         // --- start download from scheduler ---
-        var slot = _slot;
+        let slot = _slot;
         if ( slot == undefined ) {
-            return ;
+            return
         }
 
         if (_paused) {
-            return ;
+            return
         }
+
 
         // neet to backout
         if (!_needs_backout(_spider) ) {
-            _next_request_from_scheduler(_spider);
+            _next_request_from_scheduler(_spider)
         }
 
 
         // --- call next request ---
         if ( slot.getStartRequests().length > 0  && !_needs_backout(_spider) ) {
             try {
-                var request = next( slot.getStartRequests() );
-
-                crawl(request , spider );
+                var request = next( slot.getStartRequests() )
+                crawl(request , spider )
             } catch (e) {
-                logger.error(e);
+                logger.error(e)
             }
         }
     }

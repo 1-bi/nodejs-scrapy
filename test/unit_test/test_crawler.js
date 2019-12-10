@@ -2,7 +2,7 @@ var assert = require('chai').assert
 var expect = require('chai').expect
 require('chai').should()
 
-const {Crawler, Spider, Scheduler , Settings} = require('../index')
+const {Crawler, Spider, Scheduler , Settings} = require('../..')
 
 
 /**
@@ -30,21 +30,29 @@ describe('Crawler', function(){
 
         var spiderSettings = Settings.build()
 
+        var spi  = new Spider()
+        spi.setStartUrls( array )
+        var c = new Crawler(spi , spiderSettings)
+
+        // 启动爬虫动作
+        c.start().then((ret)=> {
+            console.log(123)
+
+            // --- return ok
+            it('should return ok when execute request finished', function(done){
+                console.log('----------')
+                console.log(456)
+
+                done()
+            })
 
 
-        // --- return ok
-        it('start crawler ok', function(done){
-            var spi  = new Spider()
-            spi.setStartUrls( array )
-
-            var c = new Crawler(spi , spiderSettings)
-
-            // 启动爬虫动作
-            c.start()
-
-
-            done()
+        }).catch((err) => {
+            console.log(err);  // Some error
         })
+
+
+
 
 
     })

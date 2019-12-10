@@ -11,3 +11,8 @@ https://www.npmjs.com/package/nodejs-scrapy
 ```typescript
 const scrapy = require("@1-bi/scrapy");
 ```
+
+本项目下载实现组件支持以下两种
+
+##### puppeteer-core
+##### embbed ---- Axios

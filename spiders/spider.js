@@ -20,7 +20,6 @@ function Spider() {
         if ( typeof urls  === "string" ) {
             _start_urls.push( makeRequestsFromUrl(urls) );
         } else if (typeof urls  === "object" && urls instanceof Array) {
-
             for (var i = 0 ; i < urls.length ; i++) {
                 _start_urls.push( makeRequestsFromUrl(urls[i]) );
             }
