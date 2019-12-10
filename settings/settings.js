@@ -6,10 +6,6 @@ var utils = require("../utils");
 var pkgDownloadHandler = require("../download/handlers");
 
 
-
-
-
-
 /**
  * define settings
  */

@@ -16,3 +16,23 @@ const scrapy = require("@1-bi/scrapy");
 
 ##### puppeteer-core
 ##### embbed ---- Axios
+
+
+```javascript 1.8
+// 构建初始化参数
+let settingsInst = Settings.newCls()
+    .setProperty("env1","prop")
+    .setScheduler()
+    .build()
+
+// 构建入口请求
+let spi  = new Spider()
+spi.setStartUrls( ['https://mockbin.org/request'] )
+
+// 定义爬虫
+let c = new Crawler(spi , spiderSettings)
+
+//  启动
+let result = c.start()
+
+```
