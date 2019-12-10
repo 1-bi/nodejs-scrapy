@@ -206,6 +206,18 @@ class Settings {
         return self._scheduler
     }
 
+
+    getInt(key) {
+        let self = this
+        let  value = self._properties[key]
+        if (typeof value === "string") {
+            return parseInt(value, 10)
+        } else {
+            return value
+        }
+    }
+
+
     /**
      *
      * @param key

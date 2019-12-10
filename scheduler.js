@@ -78,10 +78,10 @@ function Scheduler() {
  * @param crawler
  */
 Scheduler.fromCrawler = function(crawler) {
-    var settings = crawler.getSettings().properties;
+    var settings = crawler.getSettings()
 
-    var inst = new Scheduler();
-    inst._mqclass = settings['SCHEDULER_MEMORY_QUEUE'];
+    var inst = new Scheduler()
+    inst._mqclass = settings.getProperty('SCHEDULER_MEMORY_QUEUE')
 
     return inst;
 }

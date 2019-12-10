@@ -75,13 +75,9 @@ function Crawler(spi ,  settings) {
         // --- get pendding url  ----
         _init()
 
-
         if (isMainThread) {
             let worker = new Worker(__filename, { workerData: 0 });
         }
-
-        console.log(123456)
-        console.log("---------")
 
 
         // ---  开始爬虫 ---

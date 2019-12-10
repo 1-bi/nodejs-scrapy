@@ -17,7 +17,7 @@ function Scraper(crawler) {
 
     var _signals = crawler.signals;
 
-    var itemproc_cls = crawler.getSettings().properties['ITEM_PROCESSOR'];
+    var itemproc_cls = crawler.getSettings().getProperty('ITEM_PROCESSOR')
 
 
     var _itemproc = itemproc_cls.fromCrawler(crawler) ;

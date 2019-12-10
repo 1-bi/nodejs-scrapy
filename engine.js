@@ -85,18 +85,19 @@ function Slot( start_requests  , nextcall , scheduler ) {
 
 function ExecutionEngine( crawler ) {
 
-    var self = this;
+    var self = this
 
-    var _crawler = crawler ;
-    var _settings = crawler.getSettings();
+    var _crawler = crawler
+    var _settings = crawler.getSettings()
+
 
 
     var _downloader  = null;
-    var _downloader_cls = _settings.properties["DOWNLOADER"];
+    var _downloader_cls = _settings.getProperty("DOWNLOADER")
 
     var _scheduler = null;
     // --- mapping class ---
-    var _scheduler_cls = _settings.properties["SCHEDULER_CLASS"];
+    var _scheduler_cls = _settings.getProperty("SCHEDULER_CLASS")
 
 
     var _running = false;

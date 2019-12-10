@@ -20,7 +20,7 @@ function DownloadHandlers(crawler) {
 
     // init function
     (function() {
-        _schemes = crawler.getSettings().properties["DOWNLOAD_HANDLERS"];
+        _schemes = crawler.getSettings().getProperty("DOWNLOAD_HANDLERS")
 
     })();
 
