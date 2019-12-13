@@ -1,35 +1,12 @@
-const url = require('url');
+const url = require('url')
+const reactor = require('./reactor')
+const defer = require('./defer')
 
 // ---- create defere handle
-function Deferred() {
-
-    var self = this;
-
-    var _errbacks = [];
-    var _callbacks = [];
-
-    function addErrback(errback) {
-        _errbacks.push(errback);
-    }
-    self.addErrback = addErrback;
-
-    function addCallbacks(callback) {
-        _callbacks.push(callback);
-    }
-    self.addCallbacks = addCallbacks;
-
-    function addBoth(handler) {
-        _callbacks.push(handler);
-        _errbacks.push(handler);
-    }
-    self.addBoth = addBoth;
-
-}
-
 
 function  deferSucceed(result) {
 
-    var successDefer = new Deferred();
+    var successDefer = new defer.Deferred();
     successDefer.addCallbacks( result );
 
     return successDefer;
@@ -37,7 +14,7 @@ function  deferSucceed(result) {
 };
 
 function deferFail(_failure) {
-    var defer = new Deferred();
+    var defer = new defer.Deferred();
     defer.addErrback( _failure );
     return defer ;
 }
@@ -73,44 +50,6 @@ function mustbeDeferred(func , args ) {
 
 }
 
-
-/**
- * 定义新的类内容型式
- */
-class CallLaterOnce {
-
-    constructor(func, spider) {
-        let self = this
-        self._func = func
-        self._spider = spider
-        self._call = {
-            state : 0 // 0 -> unuse , 1 -> use
-        }
-    }
-
-
-    async schedule(delay) {
-        let self = this
-        // call event ---
-        if ( !(self._call["fun"] )  ) {
-            // --- 使用 Promise 或 异步执行 ---
-            setTimeout(function(){
-
-                self._call["state"] = 1;
-                self._call["fun"] = self._func(self._spider)
-            },1000);
-        }
-    }
-
-
-    cancel() {
-        let self = this
-        if (self._call["state"]  == 1 && self._call["fun"]   ) {
-            self._call["fun"].cancel();
-        }
-    }
-
-}
 
 /**
  * unuse
@@ -197,7 +136,7 @@ function loadObjectCls(inputCls) {
 
     let filePath = inputCls.split(".").join("/")
     let fullFilePath = "../" +filePath
-    let  clsObj = require(fullFilePath )
+    let clsObj = require(fullFilePath )
 
     if (!clsObj) {
         throw new ClassNotFoundError("Could not find class in file path [" + fullFilePath + "]. ")
@@ -209,9 +148,9 @@ function loadObjectCls(inputCls) {
 
 
 module.exports = {
-    Deferred : Deferred ,
+    Deferred : defer.Deferred ,
     mustbeDeferred  : mustbeDeferred ,
     loadObjectCls : loadObjectCls,
     urlparseCached : urlparseCached ,
-    CallLaterOnce : CallLaterOnce
+    CallLaterOnce : reactor.CallLaterOnce
 };

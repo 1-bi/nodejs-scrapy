@@ -51,9 +51,9 @@ class Settings {
 
         self._properties["ITEM_PROCESSOR"] = pipelines.ItemPipelineManager
 
-        self._properties["SCHEDULER_CLASS"] = pkgScheduler.Scheduler
+        //self._properties["SCHEDULER_CLASS"] = pkgScheduler.Scheduler
+        self._properties["SCHEDULER_CLASS"] = 'scheduler.embbed'
         self._properties["SCHEDULER_MEMORY_QUEUE"] = queue.Memory
-
         self._properties["DOWNLOADER"] = download.Downloader
 
         self._properties["DOWNLOAD_HANDLER_CLS"] = {

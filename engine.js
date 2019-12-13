@@ -18,7 +18,75 @@ const scraper = require('./scraper')
  *  slot ---- 处理Request 请求的一个生命周期
  * @constructor
  */
-function Slot(start_requests, nextcall, scheduler) {
+class Slot {
+
+    constructor(start_requests, nextcall, scheduler) {
+        let self = this
+
+        self._closing = false
+        // 处理 Request 的生命周期
+        self._inprogress = {} // requests in progress
+
+        self._start_requests = []
+
+        if (start_requests instanceof Array) {
+            self._start_requests = self._start_requests.concat(start_requests)
+        } else {
+            self._start_requests.push(start_requests)
+        }
+
+        self._nextcall = nextcall
+
+        self._scheduler = scheduler
+    }
+
+    addRequest(request) {
+        let self = this
+        self._inprogress[request] = 1
+    }
+
+
+    removeRequest(request) {
+        delete _inprogress[request]
+    }
+
+
+    close() {
+
+    }
+
+
+    getNextcall() {
+        return this._nextcall
+    }
+
+    getScheduler() {
+        return this._scheduler
+    }
+
+    getStartRequests() {
+        this._start_requests
+    }
+
+
+
+    _fireClosing() {
+        let self = this
+        if (self._closing && (self._inprogress === undefined || self._inprogress.length == 0)) {
+
+            // --- 检查 nextCall 是否不为空，若存在，就直接cancel ---
+            if (self._nextcall) {
+                self._nextcall.cancel();
+            }
+
+        }
+
+    }
+
+}
+
+
+function Slot2(start_requests, nextcall, scheduler) {
 
     var self = this;
 
@@ -71,7 +139,6 @@ function Slot(start_requests, nextcall, scheduler) {
     function getStartRequests() {
         return _start_requests;
     }
-
     self.getStartRequests = getStartRequests;
 
 
@@ -96,12 +163,22 @@ function Slot(start_requests, nextcall, scheduler) {
  */
 class ExecutionEngine {
 
-    constructor(crawler) {
+    /**
+     *
+     * @param crawler
+     * @param spider_closed_callback close callback
+     */
+    constructor(crawler , spider_closed_callback) {
         let _self = this
         _self._crawler = crawler
 
         // --- redefine settings ---
         _self._settings = crawler.getSettings()
+
+        // --- define call back ---
+        if (spider_closed_callback ) {
+            _self._spider_closed_callback = spider_closed_callback
+        }
 
 
         _self._init( _self._settings )
@@ -114,7 +191,8 @@ class ExecutionEngine {
 
 
         self._downloader_cls = settings.getProperty("DOWNLOADER")
-        self._scheduler_cls = settings.getProperty("SCHEDULER_CLASS")
+        let _scheduler_cls = settings.getProperty("SCHEDULER_CLASS")
+        self._scheduler_cls = utils.loadObjectCls( _scheduler_cls )
 
         // --- set running status ---
         self._running = false
@@ -158,9 +236,21 @@ class ExecutionEngine {
         self._running = true
 
         // --- 等待关闭的信号 ---
+        self._closewait = new utils.Deferred()
+        return self._closewait
     }
 
+    /**
+     * 简化停止模型
+     */
     stop() {
+        let self = this
+        // --- 检查 stop running
+        if (self.running) {
+            self.running = false
+        }
+        console.log('stop id ')
+        self._finish_stopping_engine()
 
     }
 
@@ -210,10 +300,9 @@ class ExecutionEngine {
 
         //  call next request
 
-
         // init scheduler ininstance with crawler setting
         let scheduler = self._scheduler_cls.fromCrawler(self._crawler)
-        let startRequest = oneRequest;
+        let startRequest = oneRequest
 
         //  定义 Request 处理的生命周期
         let slot = new Slot(startRequest, nextcall, scheduler)
@@ -254,10 +343,9 @@ class ExecutionEngine {
             return
         }
 
-
         // neet to backout
         if (!_needs_backout(_spider)) {
-            _next_request_from_scheduler(_spider)
+            self._next_request_from_scheduler(_spider)
         }
 
 
@@ -328,9 +416,19 @@ class ExecutionEngine {
         slot.removeRequest(request);
     }
 
+    // --- class stop engine
+    _finish_stopping_engine () {
+        let self = this
+        // --- call method without method
+        self._closewait.callback()
+    }
+
 }
 
+module.exports.ExecutionEngine = ExecutionEngine
+module.exports.Slot = Slot
 
+// unuse
 function ExecutionEngine2(crawler) {
 
     var self = this
@@ -570,10 +668,4 @@ function ExecutionEngine2(crawler) {
     function _downloaded(reqponse, slot, request, spider) {
         slot.removeRequest(request);
     }
-
-
 }
-
-module.exports.ExecutionEngine = ExecutionEngine
-module.exports.Slot = Slot
-

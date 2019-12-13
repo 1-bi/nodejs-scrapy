@@ -3,7 +3,9 @@ const {  isMainThread, parentPort, workerData, threadId,
 
 
 function mainThread() {
+    console.log( __filename )
     let worker = new Worker(__filename, { workerData: 0 });
+    /*
     worker.on('exit', code => {
         console.log(`main: worker stopped with exit code ${code}`); });
 
@@ -11,9 +13,11 @@ function mainThread() {
         console.log(`main: receive ${msg}`);
         worker.postMessage(msg + 1);
     });
+    */
 }
 
 function workerThread() {
+    /*
     console.log(`worker: threadId ${threadId} start with ${__filename}`);
     console.log(`worker: workerDate ${workerData}`);
     parentPort.on('message', msg => {
@@ -28,6 +32,7 @@ function workerThread() {
         },5000)
     }),
     parentPort.postMessage(workerData);
+    */
 }
 
 

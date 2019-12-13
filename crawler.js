@@ -1,5 +1,5 @@
-var eng = require('./engine');
-var middleware = require('./download/middleware');
+const eng = require('./engine');
+const middleware = require('./download/middleware');
 const pino = require('pino');
 const logger = pino({
     prettyPrint: {
@@ -114,7 +114,8 @@ function Crawler(spi ,  settings) {
 
 
             // ---- 启动执行，发送引擎运作信号 ---
-            _engine.start();
+            let result = _engine.start()
+
 
         } catch (e) {
 
@@ -130,10 +131,13 @@ function Crawler(spi ,  settings) {
 
     function _create_engine() {
 
-        var engine = new eng.ExecutionEngine(self);
 
-        engine.stop();
-        return engine;
+        var engine = new eng.ExecutionEngine(self , function(){
+            // stop call back
+        })
+
+
+        return engine
     }
 
 
