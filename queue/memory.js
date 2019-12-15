@@ -1,24 +1,34 @@
 var Queue = require('better-queue');
 
+class Memory {
 
-function Memory() {
 
+    constructor(){
+        let self = this
 
-    var self = this ;
+        self._queue = []
 
-    var queue = [];
-
-    function pop() {
-        return queue.pop();
+        self._init()
     }
-    self.pop = pop;
 
+    _init() {
 
-    function push(queueObj) {
-        queue.push( queueObj );
     }
-    self.push = push;
 
+    pop() {
+        let self = this
+        return self._queue.pop()
+    }
+
+    push( queueObj ) {
+        let self = this
+        self._queue.push( queueObj )
+    }
+
+    pushAll ( objArray ) {
+        let self = this
+        self._queue = self._queue.concat( objArray )
+    }
 
 
 }

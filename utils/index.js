@@ -98,14 +98,13 @@ function CallLaterOnce2( func , spider ) {
     // --- up caller ---
 }
 
-
 function urlparseCached(request) {
     /**
      Return urlparse.urlparse caching the result, where the argument can be a
      Request or Response object
      * @type {number | any}
      */
-    var urlObj = url.parse(request.getUrl() );
+    var urlObj = url.parse( request.getUrl() );
 
     var parseCache = {
         scheme : urlObj.protocol.replace(":",""),

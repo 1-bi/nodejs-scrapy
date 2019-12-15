@@ -3,10 +3,11 @@
  */
 class CallLaterOnce {
 
-    constructor(func, spider) {
+    constructor(func, spider ,engine) {
         let self = this
         self._func = func
         self._spider = spider
+        self._engine = engine
         self._call = {
             state : 0 // 0 -> unuse , 1 -> use
         }
@@ -28,8 +29,8 @@ class CallLaterOnce {
             setTimeout(function(){
 
                 self._call["state"] = 1;
-                self._call["fun"] = self._func(self._spider)
-            },1000);
+                self._call["fun"] = self._func.call(self._engine, self._spider)
+            },0);
         }
     }
 

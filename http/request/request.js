@@ -3,7 +3,62 @@
  * @param url
  * @constructor
  */
-function Request(url) {
+class Request {
+
+    constructor( url ) {
+        let self = this
+        self._encoding =  "UTF-8"
+        self._method = "GET"
+
+        self._set_url(url)
+
+        self._cookies = {}
+
+        self.headers = {}
+
+        self._meta = {}
+
+        self._flags = []
+
+    }
+
+    _init() {
+
+    }
+
+    meta() {
+        let self = this
+        if (!self._meta) {
+            self._meta = {}
+        }
+        return self._meta
+    }
+
+    getUrl() {
+        let self = this
+        return self._get_url()
+    }
+
+    _set_url(url) {
+        let self = this
+        self._url = url
+        return self._url
+    }
+
+    _get_url() {
+        let self = this
+        return self._url
+    }
+}
+
+module.exports.Request = Request
+
+/**
+ * unuse
+ * @param url
+ * @constructor
+ */
+function Request2(url) {
 
     var self = this
 
@@ -40,7 +95,7 @@ function Request(url) {
     }
 
 
-    function  getUrl(){
+    function getUrl(){
         return _get_url()
     }
     self.getUrl = getUrl
@@ -57,5 +112,3 @@ function Request(url) {
     }
 
 }
-
-module.exports.Request = Request

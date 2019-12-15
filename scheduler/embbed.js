@@ -35,17 +35,18 @@ class EmbbedScheduler {
     enqueueRequest(request) {
         let self = this
         // --- push request to queue ---
-        _mqpush(request)
+        self._mqpush(request)
     }
 
 
     nextRequest() {
-
+        let self = this
         let request = self.mqs.pop()
 
         if (request) {
             // --- add state count
         }
+
 
         return request
 
@@ -70,10 +71,17 @@ class EmbbedScheduler {
         return new self._mqclass()
     }
 
-    _mqpush(request) {
+    _mqpush(reqs) {
         let self = this
 
-        self.mqs.push(request);
+        if (reqs instanceof Array) {
+            self.mqs.pushAll(reqs)
+        } else {
+            self.mqs.push(reqs)
+
+        }
+
+        //self.mqs.push( reqs )
         // --- set priority ---
     }
 

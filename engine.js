@@ -1,8 +1,3 @@
-// --- set the multi-thread ---
-const {
-    isMainThread, parentPort, workerData, threadId,
-    MessageChannel, MessagePort, Worker
-} = require('worker_threads')
 const pino = require('pino')
 const logger = pino({
     prettyPrint: {
@@ -29,6 +24,9 @@ class Slot {
 
         self._start_requests = []
 
+
+        self._scheduler = scheduler
+
         if (start_requests instanceof Array) {
             self._start_requests = self._start_requests.concat(start_requests)
         } else {
@@ -37,7 +35,10 @@ class Slot {
 
         self._nextcall = nextcall
 
-        self._scheduler = scheduler
+
+        // --- add request to scheduler ---
+        self._scheduler.enqueueRequest( self._start_requests )
+
     }
 
     addRequest(request) {
@@ -46,13 +47,13 @@ class Slot {
     }
 
 
-    removeRequest(request) {
-        delete _inprogress[request]
+    close() {
+
     }
 
 
-    close() {
-
+    removeRequest(request) {
+        delete _inprogress[request]
     }
 
 
@@ -65,10 +66,12 @@ class Slot {
     }
 
     getStartRequests() {
-        this._start_requests
+        return this._start_requests
     }
 
-
+    next( instArray ) {
+        return instArray.pop();
+    }
 
     _fireClosing() {
         let self = this
@@ -77,77 +80,6 @@ class Slot {
             // --- 检查 nextCall 是否不为空，若存在，就直接cancel ---
             if (self._nextcall) {
                 self._nextcall.cancel();
-            }
-
-        }
-
-    }
-
-}
-
-
-function Slot2(start_requests, nextcall, scheduler) {
-
-    var self = this;
-
-    var _closing = false;
-
-    // 处理 Request 的生命周期
-    var _inprogress = {};
-
-    var _start_requests = [];
-    if (start_requests instanceof Array) {
-        _start_requests = _start_requests.concat(start_requests);
-    } else {
-        _start_requests.push(start_requests);
-    }
-
-    var _nextcall = nextcall;
-
-    var _scheduler = scheduler;
-
-    function addRequest(request) {
-        _inprogress[request] = 1;
-    }
-
-    self.addRequest = addRequest;
-
-    function removeRequest(request) {
-        delete _inprogress[request];
-    }
-
-    self.removeRequest = removeRequest;
-
-    function close() {
-
-    }
-
-    self.close = close;
-
-    function getNextcall() {
-        return _nextcall;
-    }
-
-    self.getNextcall = getNextcall;
-
-    function getScheduler() {
-        return _scheduler;
-    }
-
-    self.getScheduler = getScheduler;
-
-    function getStartRequests() {
-        return _start_requests;
-    }
-    self.getStartRequests = getStartRequests;
-
-
-    function _fireClosing() {
-        if (_closing && (_inprogress === undefined || _inprogress.length == 0)) {
-
-            // --- 检查 nextCall 是否不为空，若存在，就直接cancel ---
-            if (_nextcall) {
-                _nextcall.cancel();
             }
 
         }
@@ -181,12 +113,12 @@ class ExecutionEngine {
         }
 
 
-        _self._init( _self._settings )
+        _self._init( crawler , _self._settings )
 
     }
 
 
-    _init(settings) {
+    _init( crawler ,  settings) {
         let self = this
 
 
@@ -201,7 +133,10 @@ class ExecutionEngine {
 
         self._slot = null
 
-        self._scheduler = settings.getScheduler();
+        //self._scheduler = scheduler_cls.fromCrawler( crawler )
+
+        //self._scheduler = settings.getScheduler();
+        console.log(  )
 
         self._downloader = new self._downloader_cls( self._crawler )
 
@@ -249,7 +184,6 @@ class ExecutionEngine {
         if (self.running) {
             self.running = false
         }
-        console.log('stop id ')
         self._finish_stopping_engine()
 
     }
@@ -267,20 +201,21 @@ class ExecutionEngine {
 
     }
 
-    schedule() {
+    schedule(request, spider) {
         let self = this
         // --- call schedule , enqueueRequest
-        if (!_slot.getScheduler().enqueueRequest(request)) {
+        if (!self._slot.getScheduler().enqueueRequest(request)) {
             // send send catch log
 
         }
     }
 
     crawl(request, spider) {
+        let self = this
         // check the spider input exist in define
         logger.debug({req: request}, " run crawl for request ")
         self.schedule(request, spider)
-        _slot.getNextcall().schedule()
+        self._slot.getNextcall().schedule()
     }
 
     /**
@@ -294,29 +229,28 @@ class ExecutionEngine {
             logger.info({"spider": spiderInst}, "Spider opened")
         }
 
-
-        let nextcall = new utils.CallLaterOnce(self._next_request, spiderInst)
-
+        let nextcall = new utils.CallLaterOnce(self._next_request, spiderInst , self )
 
         //  call next request
 
         // init scheduler ininstance with crawler setting
         let scheduler = self._scheduler_cls.fromCrawler(self._crawler)
+        scheduler.open(self._spider)
+
         let startRequest = oneRequest
 
         //  定义 Request 处理的生命周期
         let slot = new Slot(startRequest, nextcall, scheduler)
         self._slot = slot
-
         self._spider = spiderInst
 
-        scheduler.open(self._spider)
+
         self._scraper.openSpider(self._spider)
 
 
         // --- call curent object
         // should be get the current object
-        slot.getNextcall().schedule();
+        slot.getNextcall().schedule()
 
     }
 
@@ -328,36 +262,38 @@ class ExecutionEngine {
     }
 
     // ------------------ private method ------
-    _next_request(spider) {
+    _next_request( _spider ) {
         // --- deflay for call object ---
         let self = this
 
 
         // --- start download from scheduler ---
-        let slot = self._slot;
+        let slot = self._slot
+
         if (slot == undefined) {
             return
         }
 
-        if (_paused) {
+        if (self._paused) {
             return
         }
 
         // neet to backout
-        if (!_needs_backout(_spider)) {
-            self._next_request_from_scheduler(_spider)
+        if (!self._needs_backout( _spider)) {
+            self._next_request_from_scheduler( _spider )
         }
 
-
         // --- call next request ---
-        if (slot.getStartRequests().length > 0 && !_needs_backout(_spider)) {
+        /*
+        if (slot.getStartRequests().length > 0 && !self._needs_backout(_spider)) {
             try {
-                var request = next(slot.getStartRequests())
-                crawl(request, spider)
+                let request = self.next(slot.getStartRequests())
+                self.crawl(request, _spider)
             } catch (e) {
                 logger.error(e)
             }
         }
+        */
     }
 
 
@@ -365,17 +301,22 @@ class ExecutionEngine {
         return instArray.pop();
     }
 
-    needs_backout(spider) {
-        var backout = false;
-        var slot = _slot;
+    _needs_backout(spider) {
+        let self = this
+        let backout = false
+        let slot = self._slot
 
-        var backout = _running || slot._closing
+        backout = !self._running || slot._closing
+
+        return backout
     }
 
-    _next_request_from_scheduler(spider) {
-        var slot = _slot;
+    _next_request_from_scheduler( spider ) {
+        let self = this
+        let slot = self._slot
 
-        var request = slot.getScheduler().nextRequest();
+
+        let request = slot.getScheduler().nextRequest()
 
         // not found request
         if (!request) {
@@ -383,8 +324,8 @@ class ExecutionEngine {
             return
         }
 
-        var d = _download(request, spider);
-        d.addBoth(_handle_downloader_output, request, spider);
+        var d = self._download(request, spider);
+        d.addBoth(self._handle_downloader_output, request, spider);
     }
 
     // --- not implement
@@ -394,7 +335,7 @@ class ExecutionEngine {
 
 
     _download(request, spider) {
-
+        let self = this
 
         function _on_success(response) {
 
@@ -404,11 +345,11 @@ class ExecutionEngine {
 
         }
 
-        var dwld = _downloader.fetch(request, spider);
+        let dwld = self._downloader.fetch(request, spider)
 
-        dwld.addCallbacks(_on_success);
-        dwld.addBoth(_on_complete);
-        return dwld;
+        dwld.addCallbacks(_on_success)
+        dwld.addBoth(_on_complete)
+        return dwld
 
     }
 
@@ -549,6 +490,7 @@ function ExecutionEngine2(crawler) {
         //  call next request
 
 
+
         // init scheduler ininstance with crawler setting
         var scheduler = self._scheduler_cls.fromCrawler(_crawler);
         var startRequest = oneRequest;
@@ -565,6 +507,7 @@ function ExecutionEngine2(crawler) {
 
         // --- call curent object
         // should be get the current object
+
         slot.getNextcall().schedule();
 
     }
@@ -584,6 +527,7 @@ function ExecutionEngine2(crawler) {
     // ------------------ private method ------
     function _next_request(spider) {
         // --- deflay for call object ---
+        console.log(' run next request ')
 
 
         // --- start download from scheduler ---
@@ -595,6 +539,7 @@ function ExecutionEngine2(crawler) {
         if (_paused) {
             return
         }
+
 
 
         // neet to backout
@@ -635,6 +580,7 @@ function ExecutionEngine2(crawler) {
             logger.info("Url requested from scheduler is undefined. ");
             return
         }
+
 
         var d = _download(request, spider);
         d.addBoth(_handle_downloader_output, request, spider);
