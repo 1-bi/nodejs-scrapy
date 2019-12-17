@@ -2,25 +2,25 @@ const url = require('url')
 const reactor = require('./reactor')
 const defer = require('./defer')
 
+
 // ---- create defere handle
 
 function  deferSucceed(result) {
 
-    var successDefer = new defer.Deferred();
-    successDefer.addCallbacks( result );
+    var successDefer = new defer.Deferred()
+    successDefer.addCallbacks( result )
 
     return successDefer;
 
 };
 
 function deferFail(_failure) {
-    var defer = new defer.Deferred();
-    defer.addErrback( _failure );
-    return defer ;
+    let d = new defer.Deferred()
+    d.addErrback( _failure )
+    return d
 }
 
 function deferResult(result) {
-
     // --- check instance of error ---
     if (result instanceof Error ) {
         return deferFail(result);
@@ -32,71 +32,32 @@ function deferResult(result) {
 };
 
 
+function isFunctionC(object) {
+    return !!(object && object.constructor && object.call && object.apply);
+}
+
+
+
+
+
 function mustbeDeferred(func , args ) {
     // --- create defered hanlde --
-    var returnObj = {};
+    let returnObj = {}
     try {
-        var result = func(args);
-        returnObj = deferResult(result);
+        let  result = func(args);
+        returnObj = deferResult(result)
     } catch (e) {
         if ( e instanceof Error) {
-            returnObj = deferFail(e);
+            returnObj = deferFail(e)
         } else {
-            var err = new Error(e);
-            returnObj = deferFail(err);
+            let  err = new Error(e)
+            returnObj = deferFail(err)
         }
     }
     return returnObj;
 
 }
 
-
-/**
- * unuse
- * @param func
- * @param spider
- * @constructor
- */
-function CallLaterOnce2( func , spider ) {
-
-    var self = this;
-
-    var _func = func ;
-
-    var _spider = spider ;
-
-    var _call = {
-        state : 0 // 0 -> unuse , 1 -> use
-    };
-
-    function schedule() {
-
-        // call event ---
-        if ( !(_call["fun"] )  ) {
-
-            // --- 使用 Promise 或 异步执行 ---
-
-
-            setTimeout(function(){
-                _call["state"] = 1;
-                _call["fun"] = _func(spider);
-            },1000);
-        }
-
-    }
-    self.schedule = schedule;
-
-    function cancel() {
-
-        if (_call["state"]  == 1 && _call["fun"]   ) {
-            _call["fun"].cancel();
-        }
-
-    }
-    self.cancel = cancel;
-
-    // --- up caller ---
-}
 
 function urlparseCached(request) {
     /**
@@ -149,6 +110,7 @@ function loadObjectCls(inputCls) {
 module.exports = {
     Deferred : defer.Deferred ,
     mustbeDeferred  : mustbeDeferred ,
+    isFunctionC : isFunctionC,
     loadObjectCls : loadObjectCls,
     urlparseCached : urlparseCached ,
     CallLaterOnce : reactor.CallLaterOnce

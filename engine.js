@@ -136,7 +136,6 @@ class ExecutionEngine {
         //self._scheduler = scheduler_cls.fromCrawler( crawler )
 
         //self._scheduler = settings.getScheduler();
-        console.log(  )
 
         self._downloader = new self._downloader_cls( self._crawler )
 
@@ -284,6 +283,7 @@ class ExecutionEngine {
         }
 
         // --- call next request ---
+        console.log(" --- need to call another request --- ")
         /*
         if (slot.getStartRequests().length > 0 && !self._needs_backout(_spider)) {
             try {
@@ -294,6 +294,7 @@ class ExecutionEngine {
             }
         }
         */
+
     }
 
 
@@ -336,14 +337,24 @@ class ExecutionEngine {
 
     _download(request, spider) {
         let self = this
+        let slot = self._slot
+        slot.addRequest( request )
+
 
         function _on_success(response) {
+
+            console.log( "call response " )
+            console.log( response )
 
         }
 
         function _on_complete() {
 
+            // --- fire event when the nextcall start
+            slot.getNextcall().schedule()
+
         }
+
 
         let dwld = self._downloader.fetch(request, spider)
 
@@ -370,6 +381,7 @@ module.exports.ExecutionEngine = ExecutionEngine
 module.exports.Slot = Slot
 
 // unuse
+
 function ExecutionEngine2(crawler) {
 
     var self = this
@@ -529,7 +541,6 @@ function ExecutionEngine2(crawler) {
         // --- deflay for call object ---
         console.log(' run next request ')
 
-
         // --- start download from scheduler ---
         let slot = _slot;
         if (slot == undefined) {
@@ -539,7 +550,6 @@ function ExecutionEngine2(crawler) {
         if (_paused) {
             return
         }
-
 
 
         // neet to backout

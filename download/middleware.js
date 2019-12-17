@@ -1,6 +1,7 @@
 const util = require('util');
-const utils = require('../utils');
-var common = require("../common");
+const utils = require('../utils')
+const common = require("../common")
+
 
 function DownloaderMiddlewareManager() {
 
@@ -8,25 +9,29 @@ function DownloaderMiddlewareManager() {
 
     function download(downloadFunc , request, spider) {
 
+
         function process_request(request) {
 
+
             // call back
-            downloadFunc(request , spider);
+            let callObj = downloadFunc['ref']
+            let callbackFn = downloadFunc['fn']
+
+            callbackFn.call(callObj ,  request , spider)
         }
 
         function process_response(response) {
 
         }
 
+        //  处理 Exception
         function process_exception(_failure) {
 
         }
 
 
-        //  --- call back handle ---
-        process_request(request);
 
-        var deferred = utils.mustbeDeferred(process_request ,  request);
+        let deferred = utils.mustbeDeferred(process_request ,  request )
         deferred.addErrback( process_exception );
         deferred.addCallbacks(process_response);
 
