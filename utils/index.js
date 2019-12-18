@@ -40,12 +40,28 @@ function isFunctionC(object) {
 
 
 
-function mustbeDeferred(func , args ) {
+function mustbeDeferred(func , argsObj ) {
     // --- create defered hanlde --
     let returnObj = {}
     try {
-        let  result = func(args);
-        returnObj = deferResult(result)
+        let newArgs = []
+        // --- get the function arguments ---
+        for (let i = 1 ; i < arguments.length ; i++) {
+            newArgs.push( arguments[i] )
+        }
+
+
+        if (  isFunctionC( func ) ) {
+            let result = func(argsObj);
+            returnObj = deferResult(result)
+        } else if ( func['fn'] )  {
+            let fn = func['fn']
+            let ref = func['ref']
+
+            let  result = fn.apply( ref,  newArgs)
+            returnObj = deferResult(result)
+        }
+
     } catch (e) {
         if ( e instanceof Error) {
             returnObj = deferFail(e)
@@ -65,16 +81,16 @@ function urlparseCached(request) {
      Request or Response object
      * @type {number | any}
      */
-    var urlObj = url.parse( request.getUrl() );
-
-    var parseCache = {
+    let  urlObj = url.parse( request.getUrl() )
+    let parseCache = {
         scheme : urlObj.protocol.replace(":",""),
         host: urlObj.host,
         hostname: urlObj.hostname,
         query: urlObj.query,
         pathname: urlObj.pathname
-    };
-    return parseCache;
+    }
+
+    return parseCache
 
 }
 
@@ -90,6 +106,8 @@ function ClassNotFoundError(message) {
 
 
 function loadObjectCls(inputCls) {
+
+
     if ( !inputCls ) {
         throw new UndefinedError('Class loaded is undefined. ')
     }

@@ -1,33 +1,40 @@
 const request = require('superagent');
 
-function EmbbedHttpsDownloadHandler(crawler) {
 
-    var self = this;
+class EmbbedHttpsDownloadHandler {
 
+    constructor( crawler ) {
 
-    // init function
-    (function() {
+        let self = this
+        self._crawler = crawler
 
-    })();
+    }
 
-
-    function downloadRequest(request , spider) {
+    downloadRequest(request , spider) {
 
         // --- create response object ---
-        var agent = new SuperAgent();
+        let agent = new SuperAgent();
         agent.downloadRequest( request  );
 
-        return "";
+        console.log('-----------  EmbbedHttpsDownloadHandler call agent ---')
+
+        return "555";
     }
-    self.downloadRequest = downloadRequest;
 
 
-    function close() {
+
+    close() {
 
     }
-    self.close = close ;
+
+
 }
 
+/**
+ * ================================
+ *  define handler implement
+ * ================================
+ */
 
 function SuperAgent() {
 

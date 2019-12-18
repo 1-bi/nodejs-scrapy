@@ -27,26 +27,31 @@ class DownloadHandlers {
     downloadRequest( request , spider ) {
         let self = this
 
-        let scheme = utils.urlparseCached(request).scheme
+        //let scheme = 'https'
+        let scheme = utils.urlparseCached( request ).scheme
 
-        let handler = self._get_handler(scheme);
-
+        let handler = self._get_handler(scheme)
 
         if (!handler ) {
             throw "Unsupported URL scheme '%s': %s"
         }
 
         let result = handler.downloadRequest(request , spider)
+
+
+
         return result
     }
 
     // ----- private handler -----
     _load_handler(scheme) {
+        let self = this
+
         let  downloadHandler = null
         try {
-            var dhcls = _schemes[scheme]
-            downloadHandler =  new dhcls(_crawler)
-            _handlers[scheme] = downloadHandler
+            var dhcls = self._schemes[scheme]
+            downloadHandler =  new dhcls(self._crawler)
+            self._handlers[scheme] = downloadHandler
         } catch (e) {
             logger.error(e)
         }
@@ -61,6 +66,7 @@ class DownloadHandlers {
      */
     _get_handler(scheme) {
         let self = this
+
 
         let handler = self._handlers[scheme]
 

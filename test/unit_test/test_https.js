@@ -3,7 +3,6 @@ var expect = require('chai').expect
 require('chai').should()
 
 var https = require('https')
-const axios = require('axios')
 
 const {Crawler, Spider, Scheduler , Settings} = require('../..')
 
@@ -29,40 +28,6 @@ describe('Https', function(){
     describe('#simple_test1', function(){
 
 
-        const getBreeds = () => {
-            try {
-                return axios.get('https://www.baidu.com')
-            } catch (error) {
-                console.error(error)
-            }
-        }
-
-
-        it('should return ok when test finished', function(done){
-
-            const countBreeds = async () => {
-                const breeds = getBreeds()
-                    .then(response => {
-                        if (response.data.message) {
-                            done()
-                            console.log(
-                                `Got ${Object.entries(response.data.message).length} breeds`
-                            )
-                        }
-                    })
-                    .catch(error => {
-                        console.log(error)
-                    })
-            }
-
-            countBreeds()
-
-        })
-
-
-
-
-
 
 
 
@@ -73,8 +38,6 @@ describe('Https', function(){
 
 
         it('should return ok when test finished', function(done){
-
-
 
             //expect(foo).to.equal('bar');
             done()

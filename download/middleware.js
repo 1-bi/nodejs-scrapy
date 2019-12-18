@@ -12,7 +12,6 @@ function DownloaderMiddlewareManager() {
 
         function process_request(request) {
 
-
             // call back
             let callObj = downloadFunc['ref']
             let callbackFn = downloadFunc['fn']
@@ -28,8 +27,6 @@ function DownloaderMiddlewareManager() {
         function process_exception(_failure) {
 
         }
-
-
 
         let deferred = utils.mustbeDeferred(process_request ,  request )
         deferred.addErrback( process_exception );
