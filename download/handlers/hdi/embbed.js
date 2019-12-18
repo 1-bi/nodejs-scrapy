@@ -1,5 +1,12 @@
-const request = require('superagent');
-
+const pino = require('pino')
+const logger = pino({
+    prettyPrint: {
+        levelFirst: true
+    },
+    prettifier: require('pino-pretty')
+});
+const superagentInst = require('superagent');
+const response = require('../../../http/response')
 
 class EmbbedHttpsDownloadHandler {
 
@@ -13,10 +20,8 @@ class EmbbedHttpsDownloadHandler {
     downloadRequest(request , spider) {
 
         // --- create response object ---
-        let agent = new SuperAgent();
-        agent.downloadRequest( request  );
-
-        console.log('-----------  EmbbedHttpsDownloadHandler call agent ---')
+        let agent = new SuperAgent()
+        agent.doGet( request  )
 
         return "555";
     }
@@ -35,21 +40,58 @@ class EmbbedHttpsDownloadHandler {
  *  define handler implement
  * ================================
  */
+class SuperAgent {
 
-function SuperAgent() {
-
-    var self = this;
-
-
-    function downloadRequest(request ) {
+    downloadRequest(request ) {
+        let self = this
 
         // --- create response object ---
 
-
-
         return "";
     }
-    self.downloadRequest = downloadRequest;
+
+
+    /**
+     * define get from request
+     * @param request
+     */
+    doGet( request  ) {
+
+        superagentInst.get( request.getUrl() )
+            .end( (err, res) => {
+                // Calling the end function will send the request
+                if (err) {
+                    // --- fire call back event ---
+                    return
+                }
+
+                // --- create new response ---
+                let resp = new response.Response( request )
+                resp._setStatus( res.statusCode  )
+                resp._setHtml( res.text )
+
+                if ( res.headers) {
+                    resp._setHeaders( res.headers )
+                } else {
+                    if ( logger.isLevelEnabled('debug') ) {
+                        logger.debug('Return no header from response. ')
+                    }
+                }
+
+
+
+
+
+
+
+            })
+       //logger.info("hemo")
+
+
+    }
+
+
+
 }
 
 

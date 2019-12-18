@@ -1,13 +1,50 @@
 
-function Response() {
+class  Response {
 
-    var self = this;
+    /**
+     * build response object from request -
+     * @param request
+     */
+    constructor( request ) {
+        let self = this
 
-    var _headers = {};
+        self._request = request
+        self._status = -1
+        self._headers = {}
+    }
 
-    var _status = -1;
+    getHtml() {
+        let self = this
+        return self._html
+    }
 
-    var _request = request;
+    getHeaders() {
+        let self = this
+        return self._headers
+    }
+
+    getStatus() {
+        let self = this
+        return self._statusCode
+    }
+
+    _setHtml( htmlText ) {
+        let self = this
+        self._html = htmlText
+        return self
+    }
+
+    _setHeaders( headers ) {
+        let self = this
+        self._headers = headers
+        return self
+    }
+
+    _setStatus( statusCode ) {
+        let self = this
+        self._statusCode = statusCode
+        return self
+    }
 
 
 }
