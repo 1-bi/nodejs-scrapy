@@ -15,7 +15,7 @@ const scraper = require('./scraper')
  */
 class Slot {
 
-    constructor(start_requests, nextcall, scheduler) {
+    constructor(start_requests, closeIfIdle, nextcall, scheduler) {
         let self = this
 
         self._closing = false
@@ -33,6 +33,8 @@ class Slot {
             self._start_requests.push(start_requests)
         }
 
+        self._closeIfIdle = closeIfIdle
+
         self._nextcall = nextcall
 
 
@@ -41,19 +43,39 @@ class Slot {
 
     }
 
-    addRequest(request) {
+    /**
+     * add request to inprogress object
+     * @param request
+     */
+    addRequest( request ) {
         let self = this
-        self._inprogress[request] = 1
+        let reqHash = request.getReqHash()
+        self._inprogress[reqHash] = request
     }
 
 
     close() {
-
+        let self = this
+        // --- close object ---
+        self._closing = true
+        self._mayBeFireClosing()
     }
 
+    getClose() {
+        let self = this
+        return self._closing
+    }
 
-    removeRequest(request) {
-        delete _inprogress[request]
+    removeRequest( request ) {
+        let self = this
+        let reqH0ash = request.getReqHash()
+        delete self._inprogress[reqH0ash]
+        self._mayBeFireClosing()
+    }
+
+    getCloseIfIdle() {
+        let self = this
+        return self._closeIfIdle
     }
 
 
@@ -69,11 +91,7 @@ class Slot {
         return this._start_requests
     }
 
-    next( instArray ) {
-        return instArray.pop();
-    }
-
-    _fireClosing() {
+    _mayBeFireClosing() {
         let self = this
         if (self._closing && (self._inprogress === undefined || self._inprogress.length == 0)) {
 
@@ -225,7 +243,7 @@ class ExecutionEngine {
      * @param spiderInst
      * @param oneRequest
      */
-    openSpider(spiderInst, oneRequest) {
+    openSpider(spiderInst, oneRequest , closeIfIdle = true ) {
         let self = this
         if (logger.isLevelEnabled("info")) {
             logger.info({"spider": spiderInst}, "Spider opened")
@@ -235,7 +253,6 @@ class ExecutionEngine {
 
         //  call next request
 
-
         // init scheduler ininstance with crawler setting
         let scheduler = self._scheduler_cls.fromCrawler(self._crawler)
         scheduler.open(self._spider)
@@ -243,7 +260,7 @@ class ExecutionEngine {
         let startRequest = oneRequest
 
         //  定义 Request 处理的生命周期
-        let slot = new Slot(startRequest, nextcall, scheduler)
+        let slot = new Slot(startRequest, closeIfIdle, nextcall, scheduler)
         self._slot = slot
         self._spider = spiderInst
 
@@ -258,7 +275,6 @@ class ExecutionEngine {
     _next_request( _spider ) {
         // --- deflay for call object ---
         let self = this
-
 
         // --- start download from scheduler ---
         let slot = self._slot
@@ -276,9 +292,8 @@ class ExecutionEngine {
             self._next_request_from_scheduler( _spider )
         }
 
-        // --- call next request ---
 
-        /*
+        // --- call next request ---
         if (slot.getStartRequests().length > 0 && !self._needs_backout(_spider)) {
             try {
                 let request = self.next(slot.getStartRequests())
@@ -287,7 +302,70 @@ class ExecutionEngine {
                 logger.error(e)
             }
         }
-        */
+
+        // --- idle and close object
+        if (self.spiderIsIdle( _spider ) && slot.getCloseIfIdle() ) {
+
+            self._spiderIdle( _spider )
+        }
+
+    }
+
+    spiderIsIdle( spider ) {
+        let self = this
+        let result = true
+
+        // # downloader has pending requests
+        let lenDownloaderActive =  utils.lengthSetObj( self._downloader.getActive() )
+        if ( !lenDownloaderActive  ) {
+            return false
+        }
+
+        return result
+
+    }
+
+
+    /**
+     * Called when a spider gets idle. This function is called when there
+     * are no remaining pages to download or schedule. It can be called
+     * multiple times. If some extension raises a DontCloseSpider exception
+     * (in the spider_idle signal handler) the spider is not closed until the
+     * next loop and this function is guaranteed to be called (at least) once
+     * again for this spider.
+     *
+     *
+     *
+     * @param spider
+     * @private
+     */
+    _spiderIdle ( spider ) {
+        let self = this
+        if ( self.spiderIsIdle( spider ) ) {
+            // --- close spider and finish ---
+            self.closeSpider( spider, 'finished')
+        }
+
+    }
+
+
+    /**
+     * Close (cancel) spider and clear all its outstanding requests
+     *
+     *
+     * @param spider
+     * @param reason
+     */
+    closeSpider( spider, reason='cancelled' ) {
+        let self = this
+        let slot = self._slot
+
+        if ( slot.getClose() ) {
+            return slot.getClose()
+        }
+
+        // --- close slot ----
+        slot.close()
 
     }
 

@@ -37,7 +37,13 @@ function isFunctionC(object) {
 }
 
 
-
+function lengthSetObj( object ) {
+    let counter = 0
+    for (let i in object ) {
+        counter = counter + 1
+    }
+    return counter
+}
 
 
 function mustbeDeferred(func , argsObj ) {
@@ -131,5 +137,6 @@ module.exports = {
     isFunctionC : isFunctionC,
     loadObjectCls : loadObjectCls,
     urlparseCached : urlparseCached ,
+    lengthSetObj : lengthSetObj,
     CallLaterOnce : reactor.CallLaterOnce
 };

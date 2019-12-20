@@ -138,7 +138,7 @@ class Downloader {
         _self._settings = crawler.getSettings()
         _self.signals = crawler.signals
         _self._slots = {}
-        _self.active = []
+        _self._active = {}
 
         _self.DOWNLOAD_SLOT = "download_slot"
 
@@ -180,7 +180,7 @@ class Downloader {
             return response
         }
         */
-        // active_add(request)
+        _self._addReqToActive( request )
 
         // --- call middleware download ---
         _self._middleware.download( {
@@ -188,8 +188,12 @@ class Downloader {
             ref: _self
         },  request, spider)
 
-        //dfd.addBoth(_deactivate)
-        //return dfd
+
+    }
+
+    getActive() {
+        let self = this
+        return self._active
     }
 
 
@@ -208,6 +212,33 @@ class Downloader {
         self._events[eventName] = refObj
     }
 
+
+
+    _addReqToActive( request ) {
+        let self = this
+        let reqHash = request.getReqHash()
+        // --- check request ---
+        if ( !self._active[ reqHash ] ) {
+            //  --- add request ---
+            self._active[ reqHash ] = request
+        }
+        else {
+            // show log ---
+            console.log( 'reqest exist ' )
+        }
+    }
+
+    _removeReqFromActive( request ) {
+        let self = this
+        let reqHash = request.getReqHash()
+        // --- check request ---
+        if ( self._active[ reqHash ] ) {
+            //  --- add request ---
+            delete self._active[ reqHash ]
+        } else {
+
+        }
+    }
 
     /**
      * fire call when the download success
@@ -413,8 +444,14 @@ class Downloader {
         let slot = slotObj["slot"]
 
         slot.removeReqFromActive( request )
+        // --- remove active request
+        self._removeReqFromActive( request )
 
         self._finish_transferring( request , slot , spider )
+
+
+
+
 
     }
 
