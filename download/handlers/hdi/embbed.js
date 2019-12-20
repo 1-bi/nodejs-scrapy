@@ -17,16 +17,13 @@ class EmbbedHttpsDownloadHandler {
 
     }
 
-    downloadRequest(request , spider) {
+    downloadRequest(request , spider  , callbacks ) {
 
         // --- create response object ---
         let agent = new SuperAgent()
-        agent.doGet( request  )
-
-        return "555";
+        // invoke method handle
+        agent.doGet( request , callbacks )
     }
-
-
 
     close() {
 
@@ -55,10 +52,21 @@ class SuperAgent {
      * define get from request
      * @param request
      */
-    doGet( request  ) {
+    doGet( request , callbacks ) {
 
-        superagentInst.get( request.getUrl() )
-            .end( (err, res) => {
+
+        let builder = superagentInst.get( request.getUrl() )
+
+        // --- add header ---
+        let headers = request.getHeaders()
+        if ( headers ) {
+            for (let i in headers ) {
+                builder.set(i , headers[i] )
+            }
+        }
+
+
+        builder.end( (err, res) => {
                 // Calling the end function will send the request
                 if (err) {
                     // --- fire call back event ---
@@ -78,14 +86,20 @@ class SuperAgent {
                     }
                 }
 
+                let successCallback = callbacks['success']
+                if (successCallback) {
 
+                    let ref = callbacks['ref']
+                    let thisObj = this
+                    if (ref) {
+                        thisObj = ref
+                    }
 
-
-
-
-
+                    let args = []
+                    args.push ( resp  )
+                    successCallback.apply( thisObj ,  args )
+                }
             })
-       //logger.info("hemo")
 
 
     }

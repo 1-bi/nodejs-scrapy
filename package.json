@@ -24,6 +24,7 @@
   "dependencies": {
     "better-queue": "^3.8.10",
     "cheerio": "^1.0.0-rc.3",
+    "farmhash": "^3.0.0",
     "pino": "^5.12.6",
     "pino-pretty": "^3.1.0",
     "puppeteer-core": "^1.18.1",

@@ -1,5 +1,6 @@
 var assert = require('chai').assert
 var expect = require('chai').expect
+const farmhash = require('farmhash')
 require('chai').should()
 
 var https = require('https')
@@ -27,14 +28,14 @@ describe('Https', function(){
 
     describe('#simple_test1', function(){
 
-
+         hash = farmhash.hash32( Buffer.from('http://www.126.com/139?hteo=335499'))
+        console.log( hash)
 
 
 
     })
 
     describe('#createExecutiveTask()', function(){
-
 
 
         it('should return ok when test finished', function(done){

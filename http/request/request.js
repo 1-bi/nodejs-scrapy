@@ -1,3 +1,5 @@
+const farmhash = require('farmhash')
+
 /**
  * define class
  * @param url
@@ -14,7 +16,7 @@ class Request {
 
         self._cookies = {}
 
-        self.headers = {}
+        self._headers = {}
 
         self._meta = {}
 
@@ -39,9 +41,29 @@ class Request {
         return self._get_url()
     }
 
+    getReqHash() {
+        let self = this
+        return self._hash
+    }
+
+    setHeaders( headers ) {
+        let self = this
+        self._headers = headers
+        return self
+    }
+
+    getHeaders() {
+        let self = this
+        return self._headers
+    }
+
+
     _set_url(url) {
         let self = this
         self._url = url
+
+        // --- set the hash key
+        self._hash = farmhash.hash32( Buffer.from(  url )  )
         return self._url
     }
 
@@ -49,6 +71,9 @@ class Request {
         let self = this
         return self._url
     }
+
+
+
 }
 
 module.exports.Request = Request

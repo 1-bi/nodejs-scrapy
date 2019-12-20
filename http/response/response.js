@@ -13,6 +13,11 @@ class  Response {
         self._headers = {}
     }
 
+    getRequest() {
+        let self = this
+        return self._request
+    }
+
     getHtml() {
         let self = this
         return self._html

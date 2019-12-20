@@ -1,10 +1,17 @@
 const pino = require('pino');
+const events = require("events")
 const utils = require("../../utils")
 const logger = pino({
     prettyPrint: {
         levelFirst: true
     }
 })
+
+
+
+class DownloaderHandlersEmitter extends events.EventEmitter {}
+
+
 
 /**
  * define download handlers
@@ -22,6 +29,8 @@ class DownloadHandlers {
 
         self._schemes = crawler.getSettings().getProperty("DOWNLOAD_HANDLERS")
 
+        self._emitter = new DownloaderHandlersEmitter()
+
     }
 
     downloadRequest( request , spider ) {
@@ -36,12 +45,39 @@ class DownloadHandlers {
             throw "Unsupported URL scheme '%s': %s"
         }
 
-        let result = handler.downloadRequest(request , spider)
+        // replace defer by call back
 
+        handler.downloadRequest(request , spider , {
+            failure: function( err  ) {
+                self._emitter.emit("failure" , err , request ,  spider  )
+            },
+            success: function( response ) {
 
+                self._emitter.emit("success" , response , request ,  spider )
+            },
+            ref: self
+        })
 
-        return result
     }
+
+    addSuccessCallback(fn , thisObj) {
+        let self = this
+        self._emitter.on('success', function(response , request , spider ) {
+            let args = [ response , request , spider ]
+
+            fn.apply( thisObj , args )
+        })
+    }
+
+    addFailureCallback(fn , thisObj) {
+        let self = this
+        self._emitter.on('failure', function(err , request , spider ) {
+            let args = [ err , request , spider ]
+            fn.apply( thisObj , args )
+        })
+
+    }
+
 
     // ----- private handler -----
     _load_handler(scheme) {

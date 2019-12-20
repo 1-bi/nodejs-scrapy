@@ -29,7 +29,14 @@ class Spider {
 
     makeRequestsFromUrl(url) {
         // url -> mapping , dont_filter = true
-        return new req.Request(url, true)
+        let r = new req.Request(url, true)
+
+        // --- set header agent ---
+        r.setHeaders({
+            'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.81 Safari/537.36'
+        })
+
+        return r
     }
 
     getStartRequests() {
@@ -47,6 +54,16 @@ class Spider {
         // --- 执行并 parse 不同的逻辑
         return rules
     }
+
+    /**
+     * parse response from page
+     * 负责处理业务和整理业务模型
+     * @param response
+     */
+    parse(response) {
+
+    }
+
 }
 
 module.exports = Spider;
