@@ -254,15 +254,6 @@ class ExecutionEngine {
         slot.getNextcall().schedule()
     }
 
-    download(request, spider) {
-        let self = this
-        self.download(request, spider)
-
-        //var d = _download(request, spider);
-        //d.addBoth(_downloaded, _slot, request, spider);
-        //return d;
-    }
-
     // ------------------ private method ------
     _next_request( _spider ) {
         // --- deflay for call object ---
@@ -286,7 +277,7 @@ class ExecutionEngine {
         }
 
         // --- call next request ---
-        console.log(" --- need to call another request --- ")
+
         /*
         if (slot.getStartRequests().length > 0 && !self._needs_backout(_spider)) {
             try {
@@ -318,7 +309,6 @@ class ExecutionEngine {
     _next_request_from_scheduler( spider ) {
         let self = this
         let slot = self._slot
-
 
         let request = slot.getScheduler().nextRequest()
 
@@ -379,6 +369,8 @@ class ExecutionEngine {
     // bind download event
     _bind_download_events() {
         let self = this
+        let slot = self._slot
+
 
         function _on_success(response) {
 
@@ -388,9 +380,8 @@ class ExecutionEngine {
         }
 
         function _on_complete() {
-
             // --- fire event when the nextcall start
-            //slot.getNextcall().schedule()
+            slot.getNextcall().schedule()
             console.log(' call complete ')
 
         }
