@@ -1,13 +1,23 @@
+const Promise = require("bluebird")
+const utils = require('./utils')
+
+// constant size
+const Constant = {
+    'MIN_RESPONSE_SIZE': 1024
+}
+
+
 /**
  * Scraper slog
  */
 class Slot {
 
-    constructor( max_active_size=5000000 ){
+    constructor( max_active_size = 5000000 ){
         let self = this
 
+        self._max_active_size = max_active_size
         self._queue = []
-        self._active = []
+        self._active = {}
         self._active_size = 0
         self._itemproc_size = 0
 
@@ -20,24 +30,80 @@ class Slot {
 
 
     addResponseRequest(response , request ) {
+        let self = this
+        let reqHash = request.getReqHash()
+
+        self._active_size = Math.max(response[0].getHtml().length, Constant.MIN_RESPONSE_SIZE)
+
+        // --- create new promise
+        let promise = new Promise(function( resolve , reject ) {
+
+            // --- check request ---
+            if ( !self._active[ reqHash ] ) {
+                //  --- add request ---
+                self._active[ reqHash ] = request
+            }
+            else {
+                // show log ---
+                console.log( 'reqest exist ' )
+            }
+
+            self._active_size = 100
+
+            resolve()
+        })
+
+        return promise
 
     }
 
 
     nextResponseRequestDefferred() {
+        let self = this
+
+        // --- pop up query object ---
+
+        // add request
+
+
 
     }
 
-    finishresponse(response , request) {
 
+    finishResponse(response , request) {
+        let self = this
+        let reqHash = request.getReqHash()
+        // --- check request ---
+        if ( self._active[ reqHash ] ) {
+            //  --- add request ---
+            delete self._active[ reqHash ]
+        } else {
+
+        }
     }
+
+
+    getQueue() {
+        let self = this
+        return self._queue
+    }
+
 
     isIdel() {
+        let self = this
+        // --- check queue is zero
+        // active counter is zero
+        let queueCounter = self._queue.length
+        let activeCounter = Object.keys(self._active).length
+
+        let isIdel = ! (queueCounter || activeCounter)
+        return isIdel
 
     }
 
     needsBackout() {
-
+        let self = this
+        return self._active_size > self._max_active_size
     }
 
 }
@@ -60,9 +126,11 @@ class Scraper {
 
         self._signals = crawler.signals
 
-        let itemproc_cls = crawler.getSettings().getProperty('ITEM_PROCESSOR')
+        let itemproc_cls = utils.loadObjectCls( crawler.getSettings().getProperty('ITEM_PROCESSOR'), './' )
+        // --- load object property ---
 
         self._itemproc = itemproc_cls.fromCrawler(crawler)
+
 
         self._init()
     }
@@ -84,22 +152,27 @@ class Scraper {
     }
 
 
-
+    /**
+     *
+     * @param response
+     * @param request
+     * @param spider
+     */
     enqueueScrape(response, request , spider) {
         let self = this
         let slot = self._slot
-        var dfd = slot.addResponseRequest(response , request )
+        var promise  = slot.addResponseRequest(response , request )
 
         function finishScraping() {
             slot.finishResponse(response, request);
-            self._check_if_closing(spider , slot );
-            self._scape_net(spider , slot );
+            self._checkIfClosing(spider , slot );
+            self._scrape_next(spider , slot );
         }
-        dfd.addBoth( finishScraping );
+        promise.finally( finishScraping )
+
+        return promise
 
     }
-
-
 
     handleSpiderOutput(result , request , response , spider) {
         let self = this
@@ -108,94 +181,94 @@ class Scraper {
     }
 
     // ------------ private method -----------
-    _check_if_closing(spider , slot) {
+    _checkIfClosing(spider , slot) {
         if (slot.closing && slot.isIdle() ) {
             slot.closing.callback(spider);
         }
     }
+
+    _scrape_next( spider , slot ) {
+        let self = this
+
+        while ( slot.getQueue().length > 0) {
+
+            let queueObj = slot.getQueue().shift()
+
+            let dfd = self._scrape(  queueObj['response'] , queueObj['request'] , spider  )
+            if ( queueObj['deferred'] ) {
+                dfd.chainDeferred( queueObj['deferred'] )
+            }
+        }
+
+
+    }
+
+    _scrape(response , request , spider ) {
+        let self = this
+        // Handle the downloaded response or failure through the spider  callback/errback
+
+        let promise = self._do_scrape( response , request ,spider )
+
+        // --- add defer call back ---
+
+
+    }
+
+    _do_scrape( response, request, spider ) {
+        let self = this
+        let dfd = null
+        // Handle the different cases of request's result been a Response or a Failure
+        if ( ! response instanceof Error ) {
+            // --- scrape response
+        } else {
+            // --- add call spider ---
+            dfd = self.callSpider( response , request ,spider  )
+            dfd.addErrback( self._log_download_errors )
+        }
+        return dfd
+
+    }
+
+    callSpider ( result , request , spider ) {
+        // --- define request ----
+        if ( !result['request'] ) {
+            result['request'] = request
+        }
+
+        // --- create new defer ---
+        let dfd = utils.deferResult( result )
+
+        let callback = spider['spider']
+
+        if (callback) {
+            // -- add defer call back --
+            dfd.addCallbacks( callback )
+        }
+
+        dfd.addCallback( utils.arraySpiderOutput )
+
+        return dfd
+
+
+    }
+
+
+
 
     _process_spidermw_output(output , request , response , spider) {
         let self = this
 
         // --- process request spider ----
-        self._crawler.getEngine().crawl(request , spider );
+        // Process each Request/Item (given in the output parameter) returned from the given spider
+        if ( output instanceof Request ) {
+            self._crawler.getEngine().crawl(ouput , spider );
+        } else if ( output == null || ouput == undefined) {
+            return
+        } else {
+
+        }
     }
 
 }
 
 module.exports.Scraper = Scraper
-
-
-
-/**
- * unuse 2
- * @param crawler
- * @constructor
- */
-function Scraper2(crawler) {
-
-
-    var self = this;
-
-    var _slot ;
-
-    var _crawler = crawler;
-
-    var _signals = crawler.signals;
-
-    var itemproc_cls = crawler.getSettings().getProperty('ITEM_PROCESSOR')
-
-    var _itemproc = itemproc_cls.fromCrawler(crawler) ;
-
-    function openSpider(spider) {
-        let self = this
-        _slot = new Slot()
-        _itemproc.openSpider( spider );
-    }
-    self.openSpider = openSpider;
-
-    function closeSpider(spider) {
-        _slot.close();
-        _check_if_closing(spider, _slot);
-    }
-    self.closeSpider = closeSpider;
-
-
-    function closeSpider(spider) {
-        _slot.closing = true ;
-    }
-
-    function enqueueScrape(response, request , spider) {
-        var slot = slot ;
-        var dfd = slot.addResponseRequest(response , request );
-
-        function finishScraping() {
-            slot.finishResponse(response, request);
-            _check_if_closing(spider , slot );
-            _scape_net(spider , slot );
-        }
-        dfd.addBoth( finishScraping );
-
-    }
-    self.enqueueScrape = enqueueScrape;
-
-
-    function handleSpiderOutput(result , request , response , spider) {
-        // calll middle process
-        _process_spidermw_output(null , request , response , spider );
-    }
-    self.handleSpiderOutput = handleSpiderOutput;
-
-    // ------------ private method -----------
-    function _check_if_closing(spider , slot) {
-        if (slot.closing && slot.isIdle() ) {
-            slot.closing.callback(spider);
-        }
-    }
-
-    function _process_spidermw_output(output , request , response , spider) {
-        // --- process request spider ----
-        _crawler.getEngine().crawl(request , spider );
-    }
-
-}

@@ -1,45 +1,41 @@
-
-
-function ItemPipelineManager() {
-
-    var component_name = "item pipeline";
-
-    var self = this;
-
-    function processItem(item , spider) {
-        _process_chain("process_item" , item, spider );
-    }
-    self.processItem = processItem;
-
-
-    function openSpider(spider) {
-
-    }
-    self.openSpider = openSpider;
-
-
-    // ---- private method ----
-    function _get_mwlist_from_settings(settings) {
-
-    }
-
-    function _add_middleware(pipe) {
-
-    }
-
-}
+const middleware = require('../middleware')
+const utils = require("../utils")
 
 /**
- * create manager
- * @param crawler
+ * @class
  */
-ItemPipelineManager.fromCrawler = function(crawler) {
+class ItemPipelineManager extends middleware.MiddlewareManager {
 
-    var inst = new ItemPipelineManager();
+    constructor(middlewares) {
+        super(middlewares)
+        let self = this
+        self._component_name  = "item pipeline"
+    }
 
-    return inst;
+    processItem(item , spider) {
+        let self = this
+        self._process_chain("process_item" , item, spider )
+    }
+
+    _add_middleware( pipe ) {
+
+
+    }
+
+    // ---- private method ----
+    static  _get_mwlist_from_settings(settings) {
+
+        let result = utils.buildComponentList( )
+
+        return []
+    }
+
+    static fromCrawler(crawler ) {
+        // --- get the cls ----
+        return middleware.MiddlewareManager.fromCrawler( ItemPipelineManager, crawler )
+
+    }
 
 }
+module.exports = ItemPipelineManager
 
-
-module.exports.ItemPipelineManager = ItemPipelineManager;

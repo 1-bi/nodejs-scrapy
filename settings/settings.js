@@ -49,7 +49,7 @@ class Settings {
 
         let self = this
 
-        self._properties["ITEM_PROCESSOR"] = pipelines.ItemPipelineManager
+        self._properties["ITEM_PROCESSOR"] = 'pipelines.itemmanager'
 
         //self._properties["SCHEDULER_CLASS"] = pkgScheduler.Scheduler
         self._properties["SCHEDULER_CLASS"] = 'scheduler.embbed'

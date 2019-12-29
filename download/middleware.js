@@ -18,19 +18,6 @@ class DownloaderMiddlewareManager {
 
     download( downloadFunc , request, spider ) {
 
-        function process_request(request) {
-
-            // call back
-            let callObj = downloadFunc['ref']
-            let callbackFn = downloadFunc['fn']
-
-            let args = []
-            args.push(request)
-            args.push(spider)
-
-            callbackFn.apply(callObj , args)
-        }
-
         function process_response(response) {
 
         }
@@ -40,11 +27,27 @@ class DownloaderMiddlewareManager {
 
         }
 
+        // execute method call back ---
+        let callObj = downloadFunc['ref']
+        let callbackFn = downloadFunc['fn']
+
+        let args = []
+        args.push(request)
+        args.push(spider)
+
+        let promise  = callbackFn.apply(callObj , args)
+        promise.then( process_response, process_exception )
+
+
+        return promise
+
+        /*
+
         let deferred = utils.mustbeDeferred(process_request ,  request )
         deferred.addErrback( process_exception );
         deferred.addCallbacks(process_response);
-
-        return deferred
+        */
+        //return deferred
     }
 
     static _get_mwlist_from_settings( cls, settings ) {
@@ -63,56 +66,3 @@ util.inherits(DownloaderMiddlewareManager, common.MiddlewareManager);
 
 module.exports.DownloaderMiddlewareManager = DownloaderMiddlewareManager;
 
-// ---
-
-function DownloaderMiddlewareManager2() {
-
-    var self = this;
-
-    function download(downloadFunc , request, spider) {
-
-
-        function process_request(request) {
-
-            // call back
-            let callObj = downloadFunc['ref']
-            let callbackFn = downloadFunc['fn']
-
-            let args = []
-            args.push(request)
-            args.push(spider)
-
-            callbackFn.apply(callObj , args)
-        }
-
-        function process_response(response) {
-
-        }
-
-        //  处理 Exception
-        function process_exception(_failure) {
-
-        }
-
-        let deferred = utils.mustbeDeferred(process_request ,  request )
-        deferred.addErrback( process_exception );
-        deferred.addCallbacks(process_response);
-
-        return deferred;
-
-    }
-    self.download = download ;
-
-}
-
-
-DownloaderMiddlewareManager2._get_mwlist_from_settings  = function(cls, settings) {
-    var list = [];
-
-    return list;
-}
-
-
-DownloaderMiddlewareManager2.fromCrawler = function(cls , crawler) {
-    return common.MiddlewareManager.fromCrawler( DownloaderMiddlewareManager, crawler );
-}

@@ -19,7 +19,7 @@ function Crawler(spi ,  settings) {
     // 网页下载器
     var _downloader
 
-    // 爬虫调度器
+    // 爬虫请求调度器
     var _scheudler
 
     // 网页解析器

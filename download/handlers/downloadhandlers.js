@@ -1,4 +1,5 @@
 const pino = require('pino');
+const Promise = require("bluebird")
 const events = require("events")
 const utils = require("../../utils")
 const logger = pino({
@@ -33,6 +34,14 @@ class DownloadHandlers {
 
     }
 
+    /**
+     *
+     * 返回Promise的对像
+     *
+     * @typedef {{Promise}}
+     * @param request
+     * @param spider
+     */
     downloadRequest( request , spider ) {
         let self = this
 
@@ -46,25 +55,28 @@ class DownloadHandlers {
         }
 
         // replace defer by call back
+        let promise = new Promise(function( resolve , reject ) {
+            handler.downloadRequest(request , spider , {
+                failure: function( err  ) {
+                    self._emitter.emit("failure" , err , request ,  spider  )
+                    reject( err )
+                },
+                success: function( response ) {
+                    self._emitter.emit("success" , response , request ,  spider )
+                    resolve( response  )
 
-        handler.downloadRequest(request , spider , {
-            failure: function( err  ) {
-                self._emitter.emit("failure" , err , request ,  spider  )
-            },
-            success: function( response ) {
+                },
+                ref: self
+            })
 
-                self._emitter.emit("success" , response , request ,  spider )
-            },
-            ref: self
         })
-
+        return promise
     }
 
     addSuccessCallback(fn , thisObj) {
         let self = this
         self._emitter.on('success', function(response , request , spider ) {
             let args = [ response , request , spider ]
-
             fn.apply( thisObj , args )
         })
     }

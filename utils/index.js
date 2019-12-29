@@ -3,35 +3,6 @@ const reactor = require('./reactor')
 const defer = require('./defer')
 
 
-// ---- create defere handle
-
-function  deferSucceed(result) {
-
-    var successDefer = new defer.Deferred()
-    successDefer.addCallbacks( result )
-
-    return successDefer;
-
-};
-
-function deferFail(_failure) {
-    let d = new defer.Deferred()
-    d.addErrback( _failure )
-    return d
-}
-
-function deferResult(result) {
-    // --- check instance of error ---
-    if (result instanceof Error ) {
-        return deferFail(result);
-    } else {
-        return deferSucceed(result);
-    }
-
-
-};
-
-
 function isFunctionC(object) {
     return !!(object && object.constructor && object.call && object.apply);
 }
@@ -43,41 +14,6 @@ function lengthSetObj( object ) {
         counter = counter + 1
     }
     return counter
-}
-
-
-function mustbeDeferred(func , argsObj ) {
-    // --- create defered hanlde --
-    let returnObj = {}
-    try {
-        let newArgs = []
-        // --- get the function arguments ---
-        for (let i = 1 ; i < arguments.length ; i++) {
-            newArgs.push( arguments[i] )
-        }
-
-
-        if (  isFunctionC( func ) ) {
-            let result = func(argsObj);
-            returnObj = deferResult(result)
-        } else if ( func['fn'] )  {
-            let fn = func['fn']
-            let ref = func['ref']
-
-            let  result = fn.apply( ref,  newArgs)
-            returnObj = deferResult(result)
-        }
-
-    } catch (e) {
-        if ( e instanceof Error) {
-            returnObj = deferFail(e)
-        } else {
-            let  err = new Error(e)
-            returnObj = deferFail(err)
-        }
-    }
-    return returnObj;
-
 }
 
 
@@ -111,15 +47,16 @@ function ClassNotFoundError(message) {
 }
 
 
-function loadObjectCls(inputCls) {
+function loadObjectCls(inputCls ) {
 
 
     if ( !inputCls ) {
         throw new UndefinedError('Class loaded is undefined. ')
     }
-
     let filePath = inputCls.split(".").join("/")
-    let fullFilePath = "../" +filePath
+
+    let fullFilePath = "../"
+    fullFilePath = fullFilePath + filePath
     let clsObj = require(fullFilePath )
 
     if (!clsObj) {
@@ -130,13 +67,66 @@ function loadObjectCls(inputCls) {
 }
 
 
+function buildComponentList( compdict, custom=null , convert="" ) {
+
+}
+
+
+function deferSuccess( result ) {
+    //  Same as twisted.internet.defer.succeed but delay calling callback until next reactor loop
+
+}
+
+/**
+ * create defere result
+ * @param result
+ */
+function deferResult(  result ) {
+
+    if (result instanceof defer.Deferred ) {
+        return result
+    }
+    else if ( result instanceof Error    ) {
+
+    } else {
+        // --- create new defer ---
+        let d = new defer.Deferred( result  )
+        return d
+
+    }
+
+}
+
+function arraySpiderOutput( result  ) {
+    return argToArray( result  )
+}
+
+
+function argToArray( arg ) {
+
+    if (!arg) {
+        return []
+    } else if (arg instanceof  Array ) {
+        return arg
+    } else {
+        return [arg]
+    }
+
+}
+
+
+
+
 
 module.exports = {
     Deferred : defer.Deferred ,
-    mustbeDeferred  : mustbeDeferred ,
+    //mustbeDeferred  : mustbeDeferred ,
     isFunctionC : isFunctionC,
     loadObjectCls : loadObjectCls,
     urlparseCached : urlparseCached ,
     lengthSetObj : lengthSetObj,
+    buildComponentList: buildComponentList,
+    deferResult: deferResult,
+    arraySpiderOutput: arraySpiderOutput,
     CallLaterOnce : reactor.CallLaterOnce
 };

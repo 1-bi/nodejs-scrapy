@@ -7,6 +7,53 @@ const logger = pino({
 });
 const utils = require('./utils')
 const scraper = require('./scraper')
+const EventEmitter = require('events')
+
+/**
+ * 指定特定的事件定义值
+ * @type {{string}}
+ */
+const EngineEvent = {
+    'CLOSE' : 'CLOSE'
+}
+
+/**
+ * 定义标准事件和对应的 call back 处事
+ */
+class EngineEmitter extends EventEmitter {}
+
+
+class StopEngineListener {
+    // update constructor
+    constructor( timeout = 1000) {
+
+        let self = this
+
+        self._timeout = timeout
+
+        self._stopSignals = false // --- 没有接收到信号
+
+        self._run()
+    }
+
+    _run() {
+        let self = this
+
+        let currentThread = setInterval(() => {
+
+            if (self._stopSignals) {
+                clearTimeout( currentThread )
+            }
+        }, self._timeout)
+    }
+
+    stopAndExist( result ) {
+        let self = this
+        self._stopSignals = true
+
+    }
+
+}
 
 
 /**
@@ -107,6 +154,7 @@ class Slot {
 }
 
 
+
 /**
  * define execution engine object
  * @class
@@ -130,6 +178,8 @@ class ExecutionEngine {
             _self._spider_closed_callback = spider_closed_callback
         }
 
+        _self._emitter = new EngineEmitter()
+
 
         _self._init( crawler , _self._settings )
 
@@ -138,7 +188,6 @@ class ExecutionEngine {
 
     _init( crawler ,  settings) {
         let self = this
-
 
         self._downloader_cls = settings.getProperty("DOWNLOADER")
         let _scheduler_cls = settings.getProperty("SCHEDULER_CLASS")
@@ -156,6 +205,13 @@ class ExecutionEngine {
         //self._scheduler = settings.getScheduler();
 
         self._downloader = new self._downloader_cls( self._crawler )
+
+        // --- define event ---
+        // --- define event ---
+        self._emitter.on(EngineEvent.CLOSE, function(spider, slot) {
+
+            self._finish_stopping_engine()
+        })
 
     }
 
@@ -183,15 +239,12 @@ class ExecutionEngine {
 
         self.start_time = Date.now()
 
-        // --- bind event ---
-        self._bind_download_events()
-
-
         // --- start engine , 发送引擎开始执行的信号
         self._running = true
 
         // --- 等待关闭的信号 ---
-        self._closewait = new utils.Deferred()
+        self._closewait = new StopEngineListener(550)
+
         return self._closewait
     }
 
@@ -289,7 +342,17 @@ class ExecutionEngine {
 
         // neet to backout
         if (!self._needs_backout( _spider)) {
-            self._next_request_from_scheduler( _spider )
+            let p = self._next_request_from_scheduler( _spider )
+            //  check the promise exist or not , promise handle
+            if (p) {
+                p.then(function( resolve ) {
+                    console.log('hello ok ')
+                })
+                .finally(function() {
+                    console.log('finally handle ')
+                })
+            }
+
         }
 
 
@@ -360,6 +423,7 @@ class ExecutionEngine {
         let self = this
         let slot = self._slot
 
+
         if ( slot.getClose() ) {
             return slot.getClose()
         }
@@ -396,12 +460,28 @@ class ExecutionEngine {
             return
         }
 
-        self._download(request, spider);
+        let promise = self._download(request, spider)
+        promise.then( function( response  ) {
+            self._handle_downloader_output( response , request , spider  )
+
+        }).finally(function() {
+            slot.removeRequest( request )
+            //slot.nextcall.schedule()
+        })
         //d.addBoth(self._handle_downloader_output, request, spider);
+
+        return promise
+
     }
 
     // --- not implement
     _handle_downloader_output(response, request, spider) {
+        let self = this
+
+        //  response is a Response or Failure
+        let promise = self._scraper.enqueueScrape( response , request , spider  )
+
+        return promise
 
     }
 
@@ -413,8 +493,6 @@ class ExecutionEngine {
 
         function _on_success(response) {
 
-            console.log( "call response " )
-            console.log( response )
 
         }
 
@@ -422,13 +500,17 @@ class ExecutionEngine {
 
             // --- fire event when the nextcall start
             slot.getNextcall().schedule()
-
+            self._emitter.emit(EngineEvent.CLOSE)
         }
 
-        self._downloader.fetch(request, spider)
-        //dwld.addCallbacks(_on_success)
-        //dwld.addBoth(_on_complete)
-        //return dwld
+        let promise = self._downloader.fetch(request, spider)
+        promise.then( _on_success )
+        promise.finally( _on_complete )
+
+        // --- define call back ---
+
+
+        return promise
 
     }
 
@@ -440,40 +522,7 @@ class ExecutionEngine {
     _finish_stopping_engine () {
         let self = this
         // --- call method without method
-        self._closewait.callback()
-    }
-
-
-    // bind download event
-    _bind_download_events() {
-        let self = this
-        let slot = self._slot
-
-
-        function _on_success(response) {
-
-            console.log( "call response " )
-            console.log( response )
-
-        }
-
-        function _on_complete() {
-            // --- fire event when the nextcall start
-            slot.getNextcall().schedule()
-            console.log(' call complete ')
-
-        }
-
-        self._downloader.on('donwload_success', {
-            fn: _on_success,
-            ref: self
-        })
-
-        self._downloader.on('donwload_complete', {
-            fn: _on_complete,
-            ref: self
-        })
-
+        self._closewait.stopAndExist()
     }
 
 }

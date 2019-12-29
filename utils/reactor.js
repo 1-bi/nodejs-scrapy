@@ -27,7 +27,6 @@ class CallLaterOnce {
         if ( !(self._call["fun"] )  ) {
             // --- 使用 Promise 或 异步执行 ---
             setTimeout(function(){
-
                 self._call["state"] = 1;
                 self._call["fun"] = self._func.call(self._engine, self._spider)
             },0);
