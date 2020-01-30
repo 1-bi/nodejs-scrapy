@@ -115,7 +115,21 @@ function argToArray( arg ) {
 }
 
 
-
+function parseBoolean (string) {
+    var bool;
+    bool = (function() {
+        switch (false) {
+            case string.toLowerCase() !== 'true':
+                return true;
+            case string.toLowerCase() !== 'false':
+                return false;
+        }
+    })();
+    if (typeof bool === "boolean") {
+        return bool;
+    }
+    return void 0;
+}
 
 
 module.exports = {
@@ -128,5 +142,6 @@ module.exports = {
     buildComponentList: buildComponentList,
     deferResult: deferResult,
     arraySpiderOutput: arraySpiderOutput,
+    parseBoolean: parseBoolean,
     CallLaterOnce : reactor.CallLaterOnce
 };

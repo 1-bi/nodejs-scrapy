@@ -1,4 +1,5 @@
-const req = require('../http/request');
+const req = require('../http/request')
+const signals = require('../signals')
 
 /**
  * 解析器，负责解析页面内容，输入是HTML的response，输出是结构化的Items；
@@ -64,9 +65,34 @@ class Spider {
 
     }
 
+    _set_crawler( crawler ) {
+        let self = this
+        self._crawler = crawler
+        self._settings = crawler._settings
+
+        crawler._signals.connect(self.close, signals.spider_closed)
+    }
+     //   self.crawler = crawler
+   // self.settings = crawler.settings
+    //crawler.signals.connect(self.close, signals.spider_closed)
+
+    /**
+     *
+     * @param crawler
+     * @param args
+     * @param kwargs
+     */
+    static fromCrawler(crawler, args, kwargs) {
+        let cls = this
+        let spider = new cls( args, kwargs )
+        spider._set_crawler(crawler)
+        return spider
+
+    }
+
 }
 
-module.exports = Spider;
+module.exports = Spider
 
 
 

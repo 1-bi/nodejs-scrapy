@@ -63,7 +63,7 @@ class MiddlewareManager {
 
     // parallel process middleware
     _process_parallel(methodname , inputObj , args) {
-        console.log("execut method ")
+
     }
 
 

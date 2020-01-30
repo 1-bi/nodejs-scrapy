@@ -21,6 +21,8 @@ class Settings {
         // --- init properties ---
         self._scheduler = new pkgScheduler.Scheduler()
 
+        self._frozen = false
+
 
         self._properties = {}
 
@@ -28,6 +30,21 @@ class Settings {
         self._init( defaultSettingObj )
 
     }
+
+
+    copy() {
+        let self = this
+
+        let assignedProps = {}
+
+        Object.assign(assignedProps, self._properties)
+
+        let newSetting = new Settings( assignedProps )
+
+        return newSetting
+
+    }
+
 
     /**
      * private method handle
@@ -76,6 +93,13 @@ class Settings {
         self._properties["CONCURRENT_REQUESTS_PER_DOMAIN"] = 8
         self._properties["CONCURRENT_REQUESTS_PER_IP"] = 0
         self._properties["RANDOMIZE_DOWNLOAD_DELAY"] = true
+
+
+        self._properties["STATS_CLASS"] = 'statscollectors.memory'
+        self._properties["SPIDER_LOADER_CLASS"] = 'spiders.spiderloader'
+
+
+
     }
 
     _updateWithSettingInput( defaultSettingObj ) {
@@ -215,6 +239,41 @@ class Settings {
         } else {
             return value
         }
+    }
+
+    getBoolean( key ) {
+        let self = this
+        let  value = self._properties[key]
+        if (typeof value === "string") {
+            return utils.parseBoolean(value)
+        } else {
+            return value
+        }
+
+    }
+
+    /**
+     *
+     * Disable further changes to the current settings.
+     * After calling this method, the present state of the settings will become
+     * immutable. Trying to change values through the :meth:`~set` method and
+     * its variants won't be possible and will be alerted.
+     *
+     */
+    freeze() {
+        let self = this
+        self._frozen = true
+    }
+
+    /**
+     *
+     * Return an immutable copy of the current settings.
+     * Alias for a :meth:`~freeze` call in the object returned by :meth:`copy`.     *
+     */
+    frozencopy() {
+        let copy = self.copy()
+        copy.freeze()
+        return copy
     }
 
 

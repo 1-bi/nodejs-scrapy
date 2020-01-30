@@ -1,11 +1,15 @@
 var Crawler = require('./crawler')
+const CrawlerProcess = require('./crawlerprocess')
+const CrawlerRunner = require('./crawlerrunner')
 var spider = require('./spiders')
 var scheduler = require('./scheduler')
 var settings = require('./settings')
 
 
+
 module.exports = {
-    Crawler : Crawler,
+    CrawlerProcess, CrawlerProcess,
+    CrawlerRunner, CrawlerRunner,
     Spider: spider.Spider,
     Scheduler: scheduler.Scheduler,
     Settings: settings.Settings

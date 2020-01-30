@@ -15,7 +15,6 @@ class Deferred extends EventEmitter {
         self._timeout = timeout
         self._init()
 
-        //self._run()
     }
 
     _init() {
@@ -25,24 +24,8 @@ class Deferred extends EventEmitter {
             self._stopSignals = true
         })
 
-
     }
 
-    _run() {
-        let self = this
-
-        let currentThread = setTimeout(() => {
-
-            console.log( self._stopSignals )
-
-            if (self._stopSignals) {
-                clearTimeout( currentThread )
-            } else {
-                self._run()
-            }
-
-        }, self._timeout)
-    }
 
     addErrback( errback ) {
         let self = this
@@ -125,8 +108,8 @@ class Deferred extends EventEmitter {
             throw new err.ClassMatchingError( errMsg )
         }
 
-
-
+        self._callbacks.concat( dfd._callbacks )
+        self._errbacks.concat( dfd._errbacks )
 
         return self
 

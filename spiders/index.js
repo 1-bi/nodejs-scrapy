@@ -1,5 +1,7 @@
-var Spider = require('./spider');
+let Spider = require('./spider')
+let SpiderLoader = require('./spiderloader')
 
 module.exports = {
-    "Spider" : Spider
+    "Spider" : Spider,
+    "SpiderLoader": SpiderLoader
 };

@@ -243,8 +243,8 @@ class ExecutionEngine {
         self._running = true
 
         // --- 等待关闭的信号 ---
-        self._closewait = new StopEngineListener(550)
-
+        //self._closewait = new StopEngineListener(550)
+        self._closewait = new utils.Deferred(550)
         return self._closewait
     }
 
