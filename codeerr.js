@@ -1,7 +1,7 @@
 /**
  * build error code
  */
-class CodeErr extends  Error {
+class CodeErr extends Error {
 
      constructor(message , code) {
 
@@ -32,6 +32,5 @@ class CodeErr extends  Error {
 
 
 }
-
 
 module.exports = CodeErr

@@ -2,7 +2,7 @@ var assert = require('chai').assert
 var expect = require('chai').expect
 require('chai').should()
 
-const Slot = require('../../engine').Slot
+const Slot = require('../../core/engine').Slot
 const Scheduler = require('../../scheduler/embbed')
 const {Crawler, Spider , Settings} = require('../..')
 

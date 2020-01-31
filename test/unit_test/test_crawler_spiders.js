@@ -30,13 +30,12 @@ describe('CrawlerProcess-MockSpider', function(){
     describe('#start mock-1', function(){
         let MockSpider1 = require('../spiders/mockspider1')
 
-
         let process = new CrawlerProcess()
         process.crawl(MockSpider1)
 
         it('should return ok when test finished', function(done){
             // # the script will block here until all crawling jobs are finished
-            let result = process.start()
+            //let result = process.start()
 
             done()
         })

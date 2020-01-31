@@ -1,5 +1,6 @@
 const req = require('../http/request')
 const signals = require('../signals')
+const err = require('../err')
 
 /**
  * 解析器，负责解析页面内容，输入是HTML的response，输出是结构化的Items；
@@ -7,11 +8,21 @@ const signals = require('../signals')
  */
 class Spider {
 
-
     constructor() {
        let self = this
        self._start_urls = []
     }
+
+    /**
+     * interface method, should be implement for sub class
+     * @returns {*[]}
+     */
+    startRequests() {
+        throw new err.NotImplmentError("Could not implement method 'Spider.startRequests'")
+    }
+
+
+
 
     /**
      * 添加初始进入的URLS
@@ -20,10 +31,10 @@ class Spider {
     setStartUrls( urls ) {
         let self = this
         if ( typeof urls  === "string" ) {
-            self._start_urls.push( self.makeRequestsFromUrl( urls ) )
+            self._start_urls.push( urls )
         } else if (typeof urls  === "object" && urls instanceof Array) {
             for (var i = 0 ; i < urls.length ; i++) {
-                self._start_urls.push( self.makeRequestsFromUrl( urls[i]) )
+                self._start_urls.push( urls[i] )
             }
         }
     }
@@ -40,8 +51,17 @@ class Spider {
         return r
     }
 
+    /**
+     * public start request
+     * @returns {[]|*[]}
+     */
     getStartRequests() {
-        return this._start_urls
+        let self  = this
+        let startReqsArray = []
+        for (let i = 0 ; i < self._start_urls.length ; i++) {
+            startReqsArray.push( self.makeRequestsFromUrl( self._start_urls[i]) )
+        }
+        return startReqsArray
     }
 
 
@@ -70,11 +90,14 @@ class Spider {
         self._crawler = crawler
         self._settings = crawler._settings
 
+        // --- execute spider implement method ----
+        let startRequests = self.startRequests()
+        self.setStartUrls( startRequests )
+        // --- append method end ---------
+
         crawler._signals.connect(self.close, signals.spider_closed)
     }
-     //   self.crawler = crawler
-   // self.settings = crawler.settings
-    //crawler.signals.connect(self.close, signals.spider_closed)
+
 
     /**
      *
@@ -89,7 +112,6 @@ class Spider {
         return spider
 
     }
-
 }
 
 module.exports = Spider

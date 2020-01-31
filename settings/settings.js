@@ -90,13 +90,22 @@ class Settings {
         self._properties["DOWNLOADER_MIDDLEWARES"] = {
         }
 
+        self._properties["DOWNLOADER_MIDDLEWARES_BASE"] = {
+            'scrapy.downloadermiddlewares.robotstxt.RobotsTxtMiddleware': 100
+        }
+
+
         self._properties["CONCURRENT_REQUESTS_PER_DOMAIN"] = 8
         self._properties["CONCURRENT_REQUESTS_PER_IP"] = 0
         self._properties["RANDOMIZE_DOWNLOAD_DELAY"] = true
 
 
         self._properties["STATS_CLASS"] = 'statscollectors.memory'
-        self._properties["SPIDER_LOADER_CLASS"] = 'spiders.spiderloader'
+        self._properties["SPIDER_LOADER_CLASS"] = 'core.spiderloader'
+
+        self._properties["SPIDER_MIDDLEWARES_BASE"] = {
+            'scrapy.spidermiddlewares.httperror.HttpErrorMiddleware': 50
+        }
 
 
 

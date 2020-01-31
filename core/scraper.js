@@ -1,5 +1,6 @@
 const Promise = require("bluebird")
-const utils = require('./utils')
+const utils = require('../utils')
+const SpiderMiddlewareManager = require('./spidermw')
 
 // constant size
 const Constant = {
@@ -119,16 +120,17 @@ class Scraper {
 
     constructor( crawler ){
         let self = this
-
         self._slot = null
 
-        self._crawler = crawler
+        self._spidermw = SpiderMiddlewareManager.fromCrawler(crawler)
 
+        self._crawler = crawler
         self._signals = crawler.signals
 
         let itemproc_cls = utils.loadObjectCls( crawler.getSettings().getProperty('ITEM_PROCESSOR'), './' )
-        // --- load object property ---
 
+        console.log( itemproc_cls )
+        // --- load object property ---
         self._itemproc = itemproc_cls.fromCrawler(crawler)
 
 

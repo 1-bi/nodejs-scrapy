@@ -5,7 +5,7 @@ const logger = pino({
     },
     prettifier: require('pino-pretty')
 });
-const utils = require('./utils')
+const utils = require('../utils')
 const scraper = require('./scraper')
 const EventEmitter = require('events')
 
@@ -298,8 +298,12 @@ class ExecutionEngine {
      */
     openSpider(spiderInst, oneRequest , closeIfIdle = true ) {
         let self = this
-        if (logger.isLevelEnabled("info")) {
-            logger.info({"spider": spiderInst}, "Spider opened")
+        // --- output log ----
+        if (logger.isLevelEnabled("debug")) {
+            logger.debug({"spider": spiderInst}, "Spider opened")
+        }
+        else if ( logger.isLevelEnabled("info") ) {
+            logger.info("Spider opened ")
         }
 
         let nextcall = new utils.CallLaterOnce(self._next_request, spiderInst , self )
@@ -308,6 +312,7 @@ class ExecutionEngine {
 
         // init scheduler ininstance with crawler setting
         let scheduler = self._scheduler_cls.fromCrawler(self._crawler)
+
         scheduler.open(self._spider)
 
         let startRequest = oneRequest
@@ -322,55 +327,66 @@ class ExecutionEngine {
         // --- call curent object
         // should be get the current object
         slot.getNextcall().schedule()
+
+
     }
 
     // ------------------ private method ------
     _next_request( _spider ) {
+
         // --- deflay for call object ---
         let self = this
 
         // --- start download from scheduler ---
         let slot = self._slot
 
-        if (slot == undefined) {
-            return
-        }
+        try {
 
-        if (self._paused) {
-            return
-        }
-
-        // neet to backout
-        if (!self._needs_backout( _spider)) {
-            let p = self._next_request_from_scheduler( _spider )
-            //  check the promise exist or not , promise handle
-            if (p) {
-                p.then(function( resolve ) {
-                    console.log('hello ok ')
-                })
-                .finally(function() {
-                    console.log('finally handle ')
-                })
+            if (slot == undefined) {
+                return
             }
 
-        }
-
-
-        // --- call next request ---
-        if (slot.getStartRequests().length > 0 && !self._needs_backout(_spider)) {
-            try {
-                let request = self.next(slot.getStartRequests())
-                self.crawl(request, _spider)
-            } catch (e) {
-                logger.error(e)
+            if (self._paused) {
+                return
             }
+
+            // neet to backout
+            if (!self._needs_backout( _spider)) {
+                let p = self._next_request_from_scheduler( _spider )
+                //  check the promise exist or not , promise handle
+                if (p) {
+                    p.then(function( resolve ) {
+                        console.log('hello ok ')
+                    })
+                        .finally(function() {
+                            console.log('finally handle ')
+                        })
+                }
+
+            }
+
+
+            // --- call next request ---
+            if (slot.getStartRequests().length > 0 && !self._needs_backout(_spider)) {
+                try {
+                    let request = self.next(slot.getStartRequests())
+                    self.crawl(request, _spider)
+                } catch (e) {
+                    logger.error(e)
+                }
+            }
+
+            // --- idle and close object
+            if (self.spiderIsIdle( _spider ) && slot.getCloseIfIdle() ) {
+
+                self._spiderIdle( _spider )
+            }
+
+
+        } catch (e) {
+            console.log( e )
         }
 
-        // --- idle and close object
-        if (self.spiderIsIdle( _spider ) && slot.getCloseIfIdle() ) {
-
-            self._spiderIdle( _spider )
-        }
 
     }
 
@@ -451,7 +467,6 @@ class ExecutionEngine {
     _next_request_from_scheduler( spider ) {
         let self = this
         let slot = self._slot
-
         let request = slot.getScheduler().nextRequest()
 
         // not found request
@@ -527,5 +542,7 @@ class ExecutionEngine {
 
 }
 
-module.exports.ExecutionEngine = ExecutionEngine
-module.exports.Slot = Slot
+module.exports = {
+    ExecutionEngine : ExecutionEngine,
+    Slot : Slot
+}

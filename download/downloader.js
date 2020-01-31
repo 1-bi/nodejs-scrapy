@@ -147,7 +147,7 @@ class Downloader {
         _self.domain_concurrency = crawler.getSettings().getInt('CONCURRENT_REQUESTS_PER_DOMAIN')
         _self.ip_concurrency = crawler.getSettings().getInt("CONCURRENT_REQUESTS_PER_IP")
         _self.randomize_delay = crawler.getSettings().getProperty['RANDOMIZE_DOWNLOAD_DELAY']
-        _self._middleware = middleware.DownloaderMiddlewareManager.fromCrawler(middleware.DownloaderMiddlewareManager, crawler)
+        _self._middleware = middleware.DownloaderMiddlewareManager.fromCrawler( crawler )
 
         _self._emitter = new DownloaderEmitter()
 

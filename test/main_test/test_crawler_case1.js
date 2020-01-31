@@ -14,7 +14,7 @@ let process = new CrawlerProcess({
 
 })
 
-//var c = new Crawler('spiders.spider' , spiderSettings)
+//var c = new Crawler('core.spider' , spiderSettings)
 
 // 启动爬虫动作
 let result = c.start()

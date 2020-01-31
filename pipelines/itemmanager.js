@@ -30,11 +30,6 @@ class ItemPipelineManager extends middleware.MiddlewareManager {
         return []
     }
 
-    static fromCrawler(crawler ) {
-        // --- get the cls ----
-        return middleware.MiddlewareManager.fromCrawler( ItemPipelineManager, crawler )
-
-    }
 
 }
 module.exports = ItemPipelineManager

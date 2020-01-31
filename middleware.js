@@ -1,5 +1,5 @@
 const utils = require("./utils")
-
+const err = require("./err")
 
 class MiddlewareManager {
 
@@ -66,13 +66,13 @@ class MiddlewareManager {
 
     }
 
-
-    static _get_mwlist_from_settings(cls , settings ) {
-        return 'NOtImplementedError'
+    static _get_mwlist_from_settings( settings ) {
+        throw new err.NotImplmentError("Could not implement static method 'MiddlewareManager._get_mwlist_from_settings'")
     }
 
-    static fromSettings(cls , settings , crawler = null ) {
-        let mwlist = cls._get_mwlist_from_settings(settings)
+    static fromSettings(settings , crawler = null ) {
+        let cls = this
+        let mwlist = cls._get_mwlist_from_settings( settings )
         let middlewares = []
         let enabled = []
         // --- load middleware list ---
@@ -105,9 +105,10 @@ class MiddlewareManager {
     }
 
 
-    static fromCrawler(cls , crawler ) {
+    static fromCrawler( crawler ) {
+        let cls = this
         // --- get the cls ----
-        let middleManager  = MiddlewareManager.fromSettings( cls , crawler.getSettings() , crawler )
+        let middleManager  = cls.fromSettings( crawler.getSettings() , crawler )
         return middleManager
     }
 

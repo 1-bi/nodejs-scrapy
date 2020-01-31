@@ -5,11 +5,11 @@ class MockSpider1 extends Spider {
 
 
     /**
-     *
+     * implement spdier space
      * @override
-     * @returns {[]|*[]}
+     * @returns {[string]}
      */
-    getStartRequests() {
+    startRequests() {
         let startReqs = [
             'https://www.baidu.com'
         ]

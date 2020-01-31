@@ -79,5 +79,5 @@ MiddlewareManager.fromCrawler = function(cls , crawler) {
 };
 
 
-module.exports.MiddlewareManager = MiddlewareManager;
+//module.exports.MiddlewareManager = MiddlewareManager;
 

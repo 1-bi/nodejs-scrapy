@@ -1,4 +1,4 @@
-const  CodeErr = require("../codeerr")
+const CodeErr = require("../codeerr")
 
 /**
  * build error code

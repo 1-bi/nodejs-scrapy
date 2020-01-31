@@ -1,4 +1,4 @@
-const spider = require("../../spiders");
+const spider = require("../../core");
 const settings = require("../../settings");
 const Crawler = require("../../crawler");
 

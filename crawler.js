@@ -1,8 +1,8 @@
-const eng = require('./engine')
+const eng = require('./core/engine')
 const middleware = require('./download/middleware')
 const CodeErr = require('./codeerr')
 const err = require('./err')
-const spiders = require('./spiders')
+const spiders = require('./core')
 const SignalManager = require('./signalmanager')
 const Settings = require('./settings')
 const utils = require('./utils')
@@ -73,13 +73,13 @@ class Crawler {
         try {
 
             self._spider  = self._create_spider( args , kwargs )
-
-
             self._engine = self._create_engine()
 
             // --- return start request , popup the first url request ---
             let startRequests = self._spider.getStartRequests()
             self._check_start_request( startRequests )
+
+            // popup the new one
             startRequests = startRequests.shift()
 
             // --- open engine splider request , 执行引擎的open_spider，并传入爬虫实例和初始请求
@@ -94,9 +94,7 @@ class Crawler {
             if (self._engine) {
                 return self._engine.close()
             }
-
-
-        }
+       }
 
     }
 
@@ -148,6 +146,7 @@ class Crawler {
         let engine = new eng.ExecutionEngine(self , function(){
             // stop call back
         })
+
         return engine
     }
 
@@ -165,6 +164,7 @@ module.exports = Crawler
 
 
 // ------------------------------------- out message
+
 function Crawler2(spi ,  settings) {
 
     var self = this
@@ -295,4 +295,4 @@ function Crawler2(spi ,  settings) {
 
 }
 
-module.exports = Crawler
+//module.exports = Crawler

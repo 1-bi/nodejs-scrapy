@@ -21,7 +21,11 @@ class CallLaterOnce {
 
     }
 
-    schedule(delay) {
+    /**
+     * delay timeout = 200
+     * @param delay
+     */
+    schedule(delay = 0) {
         let self = this
         // call event ---
         if ( !(self._call["fun"] )  ) {
@@ -29,7 +33,7 @@ class CallLaterOnce {
             setTimeout(function(){
                 self._call["state"] = 1;
                 self._call["fun"] = self._func.call(self._engine, self._spider)
-            },0);
+            },delay);
         }
     }
 

@@ -1,7 +1,5 @@
-
 const utils = require('./utils')
-const spiders = require('./spiders')
-
+const core = require('./core')
 const Settings = require('./settings/settings')
 const Crawler = require('./crawler')
 
@@ -49,7 +47,7 @@ class CrawlerRunner {
      :param crawler_or_spidercls: already created crawler, or a spider class
      or spider's name inside the project to create it
      :type crawler_or_spidercls: :class:`~scrapy.crawler.Crawler` instance,
-     :class:`~scrapy.spiders.Spider` subclass or string
+     :class:`~scrapy.core.Spider` subclass or string
      :param list args: arguments to initialize the spider
      :param dict kwargs: keyword arguments to initialize the spider
      *
@@ -68,17 +66,16 @@ class CrawlerRunner {
     _crawl( crawler , args, kwargs ) {
         let self = this
         self._crawlers.push( crawler )
-
         let d = crawler.crawl( args, kwargs )
-
-
         self._active.push( d )
+
 
         let _done = function(result) {
             self.crawlers.discard( crawler )
             return result
         }
         return d.addBoth( _done )
+
 
     }
 
@@ -94,7 +91,7 @@ class CrawlerRunner {
     createCrawler( crawler_or_spidercls ) {
         let self = this
 
-        if (crawler_or_spidercls instanceof spiders.Spider) {
+        if (crawler_or_spidercls instanceof core.Spider) {
             throw new Error('The crawler_or_spidercls argument cannot be a spider object, it must be a spider class (or a Crawler object)' )
         }
 

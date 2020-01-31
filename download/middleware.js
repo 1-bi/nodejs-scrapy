@@ -1,18 +1,20 @@
 const util = require('util');
 const utils = require('../utils')
-const common = require("../common")
+const middleware = require("../middleware")
 
 
 /**
  * @class
  */
-class DownloaderMiddlewareManager {
+class DownloaderMiddlewareManager extends middleware.MiddlewareManager {
 
     /**
      * build contructor
      */
-    constructor() {
-
+    constructor(middlewares) {
+        super( middlewares )
+        let self = this
+        self._component_name  = "downloader middleware"
     }
 
 
@@ -50,18 +52,12 @@ class DownloaderMiddlewareManager {
         //return deferred
     }
 
-    static _get_mwlist_from_settings( cls, settings ) {
-        let list = []
-        return list
+    static _get_mwlist_from_settings( settings ) {
+        let props = settings.getProperty('DOWNLOADER_MIDDLEWARES_BASE')
+        return Object.keys(props)
     }
 
-    static fromCrawler( cls , crawler ) {
-        return common.MiddlewareManager.fromCrawler( DownloaderMiddlewareManager, crawler )
-    }
 }
-
-
-util.inherits(DownloaderMiddlewareManager, common.MiddlewareManager);
 
 
 module.exports.DownloaderMiddlewareManager = DownloaderMiddlewareManager;
