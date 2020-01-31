@@ -1,6 +1,7 @@
 const eng = require('./engine')
 const middleware = require('./download/middleware')
 const CodeErr = require('./codeerr')
+const err = require('./err')
 const spiders = require('./spiders')
 const SignalManager = require('./signalmanager')
 const Settings = require('./settings')
@@ -77,7 +78,9 @@ class Crawler {
             self._engine = self._create_engine()
 
             // --- return start request , popup the first url request ---
-            let startRequests = self._spider.getStartRequests().shift()
+            let startRequests = self._spider.getStartRequests()
+            self._check_start_request( startRequests )
+            startRequests = startRequests.shift()
 
             // --- open engine splider request , 执行引擎的open_spider，并传入爬虫实例和初始请求
             self._engine.openSpider(self._spider, startRequests)
@@ -86,14 +89,40 @@ class Crawler {
             return self._engine.start()
 
         } catch (e) {
+            logger.error( e )
             self._crawling = false
             if (self._engine) {
                 return self._engine.close()
             }
+
+
         }
 
-
     }
+
+
+    /**
+     * check request start value
+     * @param startRequests
+     * @private
+     */
+    _check_start_request(startRequests) {
+        if ( !startRequests ) {
+            throw new Error("Request started is undefined.")
+        }
+
+        if ( typeof startRequests === "string"  ) {
+            throw new err.IllegalArguementError('The type of request started should be array.')
+        }
+        else if ( typeof startRequests === "object" ) {
+            if (startRequests instanceof  Array) {
+                if (startRequests.length == 0) {
+                    throw new Error("Please add one request start to array at least.")
+                }
+            }
+        }
+    }
+
 
     /**
      *

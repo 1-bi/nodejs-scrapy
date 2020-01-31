@@ -456,7 +456,7 @@ class ExecutionEngine {
 
         // not found request
         if (!request) {
-            logger.info("Url requested from scheduler is undefined. ");
+            //logger.info("Url requested from scheduler is undefined. ");
             return
         }
 
