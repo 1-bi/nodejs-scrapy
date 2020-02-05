@@ -79,7 +79,7 @@ function Scheduler() {
 
 
 /**
- *  create new instance from crawler
+ *  create new instance from spider
  * @param crawler
  */
 Scheduler.fromCrawler = function(crawler) {

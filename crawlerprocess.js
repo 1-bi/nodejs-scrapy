@@ -6,12 +6,12 @@ const CrawlerRunner = require('./crawlerrunner')
 /**
  *
  A class to run multiple scrapy crawlers in a process simultaneously.
- This class extends :class:`~scrapy.crawler.CrawlerRunner` by adding support
+ This class extends :class:`~scrapy.spider.CrawlerRunner` by adding support
  for starting a :mod:`~twisted.internet.reactor` and handling shutdown
  signals, like the keyboard interrupt command Ctrl-C. It also configures
  top-level logging.
  This utility should be a better fit than
- :class:`~scrapy.crawler.CrawlerRunner` if you aren't running another
+ :class:`~scrapy.spider.CrawlerRunner` if you aren't running another
  :mod:`~twisted.internet.reactor` within your application.
  The CrawlerProcess object must be instantiated with a
  :class:`~scrapy.settings.Settings` object.

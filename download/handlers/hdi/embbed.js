@@ -7,22 +7,24 @@ const logger = pino({
 });
 const superagentInst = require('superagent');
 const response = require('../../../http/response')
+const utils = require("../../../utils")
 
 class EmbbedHttpsDownloadHandler {
 
     constructor( crawler ) {
-
         let self = this
         self._crawler = crawler
-
     }
 
-    downloadRequest(request , spider  , callbacks ) {
+    downloadRequest(request , spider , _deferred ) {
+
 
         // --- create response object ---
         let agent = new SuperAgent()
         // invoke method handle
-        agent.doGet( request , callbacks )
+        let defer = agent.doGet( request , _deferred )
+
+        return defer
     }
 
     close() {
@@ -52,8 +54,7 @@ class SuperAgent {
      * define get from request
      * @param request
      */
-    doGet( request , callbacks ) {
-
+    doGet( request , _deferred) {
 
         let builder = superagentInst.get( request.getUrl() )
 
@@ -65,47 +66,34 @@ class SuperAgent {
             }
         }
 
+        // --- create defer object ---
+        let defer = _deferred
+        builder.then( (res) => {
+            //do something
+            // --- create new response ---
+            let resp = new response.Response( request )
+            resp._setStatus( res.statusCode  )
+            resp._setHtml( res.text )
 
-        builder.end( (err, res) => {
-                // Calling the end function will send the request
-                if (err) {
-                    // --- fire call back event ---
-                    return
+            if ( res.headers) {
+                resp._setHeaders( res.headers )
+            } else {
+                if ( logger.isLevelEnabled('debug') ) {
+                    logger.debug('Return no header from response. ')
                 }
+            }
+            // --- call back defer ---
+            defer.callback( resp )
+        }).catch( (err) => {
+            //do something
+            defer.errback( err )
 
-                // --- create new response ---
-                let resp = new response.Response( request )
-                resp._setStatus( res.statusCode  )
-                resp._setHtml( res.text )
+        }).finally((result) => {
 
-                if ( res.headers) {
-                    resp._setHeaders( res.headers )
-                } else {
-                    if ( logger.isLevelEnabled('debug') ) {
-                        logger.debug('Return no header from response. ')
-                    }
-                }
+        })
 
-                let successCallback = callbacks['success']
-                if (successCallback) {
-
-                    let ref = callbacks['ref']
-                    let thisObj = this
-                    if (ref) {
-                        thisObj = ref
-                    }
-
-                    let args = []
-                    args.push ( resp  )
-                    successCallback.apply( thisObj ,  args )
-                }
-            })
-
-
+        return defer
     }
-
-
-
 }
 
 

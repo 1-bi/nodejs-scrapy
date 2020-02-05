@@ -3,7 +3,6 @@ var queue = require("../queue/memory");
 var pipelines = require("../pipelines/itemmanager");
 var download = require("../download/downloader");
 var utils = require("../utils");
-var pkgDownloadHandler = require("../download/handlers");
 
 
 /**
@@ -80,21 +79,21 @@ class Settings {
             'https': 'download.handlers.hdi.embbed'
         }
 
-        self._properties["DOWNLOAD_HANDLERS"] = {
+        self._properties["DOWNLOAD_HANDLERS_BASE"] = {
             //'data': {},
             //'file': {},
-            'http': pkgDownloadHandler.Embbed,
-            'https': pkgDownloadHandler.Embbed
+            'http': 'download.handlers.hdi.embbed',
+            'https': 'download.handlers.hdi.embbed'
         }
 
         self._properties["DOWNLOADER_MIDDLEWARES"] = {
         }
 
         self._properties["DOWNLOADER_MIDDLEWARES_BASE"] = {
-            'scrapy.downloadermiddlewares.robotstxt.RobotsTxtMiddleware': 100
+           // 'scrapy.downloadermiddlewares.robotstxt.RobotsTxtMiddleware': 100
         }
 
-
+        self._properties["CONCURRENT_REQUESTS "] = 16
         self._properties["CONCURRENT_REQUESTS_PER_DOMAIN"] = 8
         self._properties["CONCURRENT_REQUESTS_PER_IP"] = 0
         self._properties["RANDOMIZE_DOWNLOAD_DELAY"] = true
@@ -104,7 +103,7 @@ class Settings {
         self._properties["SPIDER_LOADER_CLASS"] = 'core.spiderloader'
 
         self._properties["SPIDER_MIDDLEWARES_BASE"] = {
-            'scrapy.spidermiddlewares.httperror.HttpErrorMiddleware': 50
+           // 'scrapy.spidermiddlewares.httperror.HttpErrorMiddleware': 50
         }
 
 
@@ -197,14 +196,16 @@ class Settings {
         if ( !inputProps ) {
             return
         }
-
+        /*
 
         for (let i in inputProps) {
             if ( inputProps[i] ) {
                 let cls = utils.loadObjectCls( inputProps[i]  )
-                self._properties["DOWNLOAD_HANDLERS"][i] = cls
+                self._properties["DOWNLOAD_HANDLERS_BASE"][i] = cls
             }
         }
+
+         */
 
     }
 

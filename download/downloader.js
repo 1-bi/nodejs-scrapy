@@ -1,7 +1,7 @@
 const events = require("events")
 var downloadHandler = require('./handlers/downloadhandlers');
 var middleware = require("./middleware");
-var utils = require("../utils");
+const utils = require("../utils");
 const Promise = require("bluebird");
 
 class Slot{
@@ -135,15 +135,15 @@ class Downloader {
      */
     constructor( crawler ) {
         let _self = this
-
         _self._settings = crawler.getSettings()
-        _self.signals = crawler.signals
+        _self._signals = crawler._signals
         _self._slots = {}
         _self._active = {}
 
         _self.DOWNLOAD_SLOT = "download_slot"
-
         _self.handlers = new downloadHandler.DownloadHandlers(crawler)
+
+        _self.total_concurrency = crawler.getSettings().getInt('CONCURRENT_REQUESTS')
         _self.domain_concurrency = crawler.getSettings().getInt('CONCURRENT_REQUESTS_PER_DOMAIN')
         _self.ip_concurrency = crawler.getSettings().getInt("CONCURRENT_REQUESTS_PER_IP")
         _self.randomize_delay = crawler.getSettings().getProperty['RANDOMIZE_DOWNLOAD_DELAY']
@@ -176,25 +176,29 @@ class Downloader {
         _self._addReqToActive( request )
 
         // --- call middleware download ---
-        let promise = _self._middleware.download( {
+        let dfd  = _self._middleware.download( {
             fn: _self._enqueue_request,
             ref: _self
         },  request, spider)
 
 
 
-        promise.finally(function() {
+        return dfd.addBoth( function() {
             _self._removeReqFromActive( request )
         })
-
-
-        return promise
 
     }
 
     getActive() {
         let self = this
         return self._active
+    }
+
+
+    needsBackout() {
+        let self = this
+        let activeCount = Object.keys( self._active  )
+        return activeCount.length >= self.total_concurrency
     }
 
 
@@ -296,7 +300,7 @@ class Downloader {
 
 
     // ---- private method ----
-    _download(slot, request , spider ) {
+    _download(slot, request , spider ,  _deferred ) {
         let self = this
 
         // --- replase deferred by event
@@ -311,11 +315,15 @@ class Downloader {
         //    fn: self.handlers.downloadRequest,
         //    ref: self.handlers
         //} , request ,  spider )
-        let promise = self.handlers.downloadRequest( request , spider )
+        let dfd = utils.mustbeDeferred( self.handlers.downloadRequest( request , spider , _deferred ) )
+
+
 
         // # 2. Notify response_downloaded listeners about the recent download
         // _downloaded method
-        promise.then( function( response ) {
+        dfd.addCallbacks( function( response ) {
+
+
             // --- finish transferring ---
             let callerFn = self._events['donwload_success']
             if ( callerFn ) {
@@ -337,6 +345,7 @@ class Downloader {
 
         })
 
+
         /*
          # 3. After response arrives,  remove the request from transferring
         # state to free up the transferring slot so it can be used by the
@@ -345,10 +354,11 @@ class Downloader {
          */
         slot.addReqToTransferring( request )
 
-        promise.finally(function() {
+        dfd.addBoth( function() {
             self._finish_transferring( request ,  slot , spider  )
-        })
-        return promise
+        } )
+
+        return dfd
 
     }
 
@@ -389,27 +399,32 @@ class Downloader {
 
         request.meta()[self.DOWNLOAD_SLOT] = key
 
-        /*
+
         function _deactivate(response) {
-            slot.getActive().remove( request )
+            //slot.getActive().remove( request )
+
             return response
-        }*/
+        }
 
         // add one request to active queue
         slot.addReqToActive( request  )
+        let request_reached_downloader = {
+            'code': 10001,
+            'msg': '加入队列操作'
+        }
+        self._signals.sendCatchLog(request_reached_downloader , request , spider )
 
+        // --- create new defer object for request ---
+        let deferred = new utils.Deferred(0)
+        deferred.addBoth( _deactivate )
 
-        //let deferred = new utils.Deferred()
-        //deferred.addBoth( _deactivate )
-
-        // --- append object to queue ---
-        slot.getQueue().push( { request:request , deferred:{} } )
+        // --- bind deferred for every request  ---
+        slot.getQueue().push( { request:request , deferred:deferred } )
 
         // --- fire event -- queue
+        self._process_queue(spider, slot)
         //self._emitter.emit('process_req_queue' , spider, slot )
-        return self._process_queue(spider, slot)
-
-        // replace orginal code :self._process_queue(spider, slot)
+        return deferred
 
     }
 
@@ -430,8 +445,9 @@ class Downloader {
         let delay = slot.downloadDelay()
 
         // Process enqueued requests if there are free slots to transfer for this slot
-        let downloadPromiseArr = []
+        let allProcessReqDefer = []
         while ( slot.getQueue().length > 0  && slot.freeTransferSlots() > 0) {
+
             slot.lastseen = now
             let queueObj = slot.getQueue().shift()
             let request = queueObj["request"]
@@ -439,17 +455,16 @@ class Downloader {
 
             // --- invoke download function
             // return promies
-            let p = self._download(slot , request ,spider )
-            downloadPromiseArr.push( p )
-
+            let dfd = self._download(slot , request ,spider , deferred )
+            allProcessReqDefer.push( dfd )
             // prevent burst if inter-request delays were configured
             if (delay) {
                 self._process_queue(spider , slot);
                 break;
             }
         }
-        let allPromises = Promise.all(downloadPromiseArr)
-        return allPromises
+        //let allPromises = Promise.all(downloadPromiseArr)
+        //return allPromises
     }
 
     /**

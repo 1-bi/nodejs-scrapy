@@ -1,3 +1,10 @@
+const pino = require('pino')
+const logger = pino({
+    prettyPrint: {
+        levelFirst: true
+    }
+})
+
 
 class SignalManager {
 
@@ -45,6 +52,10 @@ class SignalManager {
      *
      */
     sendCatchLog(signal , kwargs) {
+
+        logger.info(signal.msg + " [ " + kwargs.getUrl() + " ] " )
+
+
     }
 
     /**

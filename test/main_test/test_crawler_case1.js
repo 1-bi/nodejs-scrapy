@@ -1,20 +1,8 @@
 
 const {Crawler,CrawlerProcess,  Spider, Scheduler , Settings} = require('../..')
 
-var array = []
-array.push("https://www.baidu.com/")
+let MockSpider1 = require('../spiders/mockspider1')
 
-var spiderSettings = Settings.build()
-
-var spi  = new Spider()
-spi.setStartUrls( array )
-
-
-let process = new CrawlerProcess({
-
-})
-
-//var c = new Crawler('core.spider' , spiderSettings)
-
-// 启动爬虫动作
-let result = c.start()
+let process = new CrawlerProcess()
+process.crawl(MockSpider1)
+let result = process.start()

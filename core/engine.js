@@ -200,7 +200,7 @@ class ExecutionEngine {
 
         self._slot = null
 
-        //self._scheduler = scheduler_cls.fromCrawler( crawler )
+        //self._scheduler = scheduler_cls.fromCrawler( spider )
 
         //self._scheduler = settings.getScheduler();
 
@@ -310,7 +310,7 @@ class ExecutionEngine {
 
         //  call next request
 
-        // init scheduler ininstance with crawler setting
+        // init scheduler ininstance with spider setting
         let scheduler = self._scheduler_cls.fromCrawler(self._crawler)
 
         scheduler.open(self._spider)
@@ -350,35 +350,32 @@ class ExecutionEngine {
                 return
             }
 
-            // neet to backout
-            if (!self._needs_backout( _spider)) {
-                let p = self._next_request_from_scheduler( _spider )
+            // neet to backout , loop for scheduler
+            while (!self._needs_backout( _spider)) {
+                let dfd  = self._next_request_from_scheduler( _spider )
                 //  check the promise exist or not , promise handle
-                if (p) {
-                    p.then(function( resolve ) {
-                        console.log('hello ok ')
-                    })
-                        .finally(function() {
-                            console.log('finally handle ')
-                        })
+                if (!dfd) {
+                    break
                 }
-
             }
-
 
             // --- call next request ---
             if (slot.getStartRequests().length > 0 && !self._needs_backout(_spider)) {
                 try {
-                    let request = self.next(slot.getStartRequests())
+                    let request = self.next( slot.getStartRequests() )
                     self.crawl(request, _spider)
                 } catch (e) {
-                    logger.error(e)
+                    slot._start_requests = null
+
+                    let msg = 'Error while obtaining start request :'
+
+                    msg = msg + '[spider] ' + JSON.stringify(_spider)
+                    logger.error( msg )
                 }
             }
 
             // --- idle and close object
             if (self.spiderIsIdle( _spider ) && slot.getCloseIfIdle() ) {
-
                 self._spiderIdle( _spider )
             }
 
@@ -459,8 +456,7 @@ class ExecutionEngine {
         let backout = false
         let slot = self._slot
 
-        backout = !self._running || slot._closing
-
+        backout = !self._running || slot._closing || self._downloader.needsBackout() || self._scraper._slot.needsBackout()
         return backout
     }
 
@@ -471,21 +467,23 @@ class ExecutionEngine {
 
         // not found request
         if (!request) {
-            //logger.info("Url requested from scheduler is undefined. ");
             return
         }
 
-        let promise = self._download(request, spider)
-        promise.then( function( response  ) {
+        let dfd = self._download(request, spider)
+
+
+        dfd.addBoth( function( response  ) {
             self._handle_downloader_output( response , request , spider  )
 
-        }).finally(function() {
+        })
+        dfd.addBoth(function() {
             slot.removeRequest( request )
             //slot.nextcall.schedule()
         })
         //d.addBoth(self._handle_downloader_output, request, spider);
 
-        return promise
+        return dfd
 
     }
 
@@ -494,9 +492,10 @@ class ExecutionEngine {
         let self = this
 
         //  response is a Response or Failure
-        let promise = self._scraper.enqueueScrape( response , request , spider  )
+        //let dfd = self._scraper.enqueueScrape( response , request , spider  )
+        let dfd = null
 
-        return promise
+        return dfd
 
     }
 
@@ -515,17 +514,16 @@ class ExecutionEngine {
 
             // --- fire event when the nextcall start
             slot.getNextcall().schedule()
-            self._emitter.emit(EngineEvent.CLOSE)
+            //self._emitter.emit(EngineEvent.CLOSE)
         }
 
-        let promise = self._downloader.fetch(request, spider)
-        promise.then( _on_success )
-        promise.finally( _on_complete )
 
-        // --- define call back ---
+        let dwld = self._downloader.fetch(request, spider)
+        dwld.addCallback( _on_success )
+        dwld.addBoth( _on_complete )
 
 
-        return promise
+        return dwld
 
     }
 
@@ -536,8 +534,10 @@ class ExecutionEngine {
     // --- class stop engine
     _finish_stopping_engine () {
         let self = this
+
+
         // --- call method without method
-        self._closewait.stopAndExist()
+        //self._closewait.stopAndExist()
     }
 
 }

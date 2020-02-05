@@ -1,7 +1,9 @@
 const pino = require('pino');
 const Promise = require("bluebird")
 const events = require("events")
+const err = require('../../err')
 const utils = require("../../utils")
+const util = require('util')
 const logger = pino({
     prettyPrint: {
         levelFirst: true
@@ -28,7 +30,13 @@ class DownloadHandlers {
 
         self._handlers = {} // stores instanced handlers for schemes
 
-        self._schemes = crawler.getSettings().getProperty("DOWNLOAD_HANDLERS")
+        self._notconfigured = {}  // remembers failed handlers
+
+        let handlers = crawler.getSettings().getProperty("DOWNLOAD_HANDLERS_BASE")
+        for (let scheme in handlers) {
+            self._schemes[scheme] = handlers[scheme]
+            self._load_handler(scheme, true)
+        }
 
         self._emitter = new DownloaderHandlersEmitter()
 
@@ -38,39 +46,25 @@ class DownloadHandlers {
      *
      * 返回Promise的对像
      *
-     * @typedef {{Promise}}
+     * @typedef {{Deferred}}
      * @param request
      * @param spider
+     * @param _deferred deffer
      */
-    downloadRequest( request , spider ) {
+    downloadRequest( request , spider , _deferred) {
         let self = this
 
         //let scheme = 'https'
         let scheme = utils.urlparseCached( request ).scheme
-
         let handler = self._get_handler(scheme)
 
         if (!handler ) {
-            throw "Unsupported URL scheme '%s': %s"
+            let errMsg = util.format("Unsupported URL scheme '%s' : %s. ", scheme , self._notconfigured[scheme])
+            throw new err.UnsupportedUrlSchemeError(errMsg)
         }
 
-        // replace defer by call back
-        let promise = new Promise(function( resolve , reject ) {
-            handler.downloadRequest(request , spider , {
-                failure: function( err  ) {
-                    self._emitter.emit("failure" , err , request ,  spider  )
-                    reject( err )
-                },
-                success: function( response ) {
-                    self._emitter.emit("success" , response , request ,  spider )
-                    resolve( response  )
-
-                },
-                ref: self
-            })
-
-        })
-        return promise
+        let defer = handler.downloadRequest(request , spider , _deferred)
+        return defer
     }
 
     addSuccessCallback(fn , thisObj) {
@@ -90,21 +84,7 @@ class DownloadHandlers {
 
     }
 
-
     // ----- private handler -----
-    _load_handler(scheme) {
-        let self = this
-
-        let  downloadHandler = null
-        try {
-            var dhcls = self._schemes[scheme]
-            downloadHandler =  new dhcls(self._crawler)
-            self._handlers[scheme] = downloadHandler
-        } catch (e) {
-            logger.error(e)
-        }
-        return downloadHandler
-    }
 
     /**
      * get load instance
@@ -114,18 +94,57 @@ class DownloadHandlers {
      */
     _get_handler(scheme) {
         let self = this
-
-
         let handler = self._handlers[scheme]
-
         if (handler) {
             return handler
+
         }
 
+        let failedHandlers = self._notconfigured[scheme]
+        if ( typeof( failedHandlers) != "undefined" ) {
+            return
+        }
+
+        let exsitScheme = self._schemes[scheme]
+        if (typeof( exsitScheme )  === "undefined") {
+            self._notconfigured[scheme] = 'no handler available for that scheme'
+            return
+        }
         // --- undefine handler for class ---
         handler = self._load_handler(scheme)
-
         return handler
+    }
+
+    _load_handler(scheme , skipLazy = false ) {
+        let self = this
+        let path = self._schemes[scheme]
+        let downloadHandler = null
+        try {
+
+            if (typeof(path) === "undefined") {
+                let errMsg = util.format("Unsupported URL scheme '%s'. ", scheme)
+                throw new err.NotConfiguredError(errMsg)
+            }
+
+            let dhcls = utils.loadObjectCls( path )
+
+            if ( !skipLazy ) {
+                return
+            }
+            // --- create inst ---
+            downloadHandler =  new dhcls(self._crawler)
+            self._handlers[scheme] = downloadHandler
+        } catch (e) {
+
+            if (e instanceof err.NotConfiguredError) {
+                logger.warn( e.message )
+            } else {
+                let errMsg = util.format("Loading '%s' for scheme '%s'", path ,scheme)
+                logger.error(errMsg)
+            }
+            self._notconfigured[scheme] = e.message
+        }
+        return downloadHandler
     }
 
 }

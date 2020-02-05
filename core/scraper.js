@@ -244,7 +244,7 @@ class Scraper {
 
         if (callback) {
             // -- add defer call back --
-            dfd.addCallbacks( callback )
+            dfd.addCallback( callback )
         }
 
         dfd.addCallback( utils.arraySpiderOutput )

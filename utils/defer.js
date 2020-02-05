@@ -33,9 +33,15 @@ class Deferred extends EventEmitter {
         return self
     }
 
-    addCallbacks( callback ) {
+    addCallback(callback ) {
         let self = this
         self._callbacks.push( callback )
+        return self
+    }
+
+    addCallbacks( callbacks ) {
+        let self = this
+        self._callbacks.concat( callbacks )
         return self
     }
 
@@ -49,34 +55,11 @@ class Deferred extends EventEmitter {
     callback( result ) {
         let self = this
 
-        // ---- get call back ---
-        let promise = new Promise(function( resolve , reject ) {
+        self._startRunCallbacks( result ,self._callbacks )
 
-            try {
-                let returVal = result()
-                resolve( returVal )
-            } catch (err) {
-                reject( err )
-            } finally {
-
-            }
-
-        })
-
-        // --- check the callback function ---
-        for (let i = 0 ; i < self._callbacks.length ; i++) {
-            promise.then( self._callbacks[i] )
-        }
-
-        // --- check the callback function ---
-        for (let i = 0 ; i < self._errbacks.length ; i++) {
-            promise.catch( self._errbacks[i] )
-        }
 
         return self
-
     }
-
 
     chainDeferred( dfd ) {
         let self = this
@@ -115,13 +98,52 @@ class Deferred extends EventEmitter {
 
     }
 
+    /**
+     *
+     * @param err Error
+     */
+    errback(err) {
+        let self = this
 
-    _startRunCallbacks ( result ) {
-
+        self._startRunCallbacks( self , self._errbacks)
+        return self
     }
 
-    _runCallbacks() {
 
+    // -------- status call back
+    _startRunCallbacks ( result , callbacks) {
+        let self = this
+
+        return self._runCallbacks( result , callbacks )
+    }
+
+    _runCallbacks( result , callbacks  ) {
+        let self = this
+
+        // ---- get call back ---
+        let promise = new Promise(function( resolve , reject ) {
+            try {
+                let returVal = result
+                resolve( returVal )
+            } catch (err) {
+                reject( err )
+            } finally {
+
+            }
+
+        })
+        // --- check the callback function ---
+        for (let i = 0 ; i < callbacks.length ; i++) {
+            promise.then( callbacks[i] )
+        }
+
+
+        // --- check the callback function ---
+        /*
+        for (let i = 0 ; i < self._errbacks.length ; i++) {
+            promise.catch( self._errbacks[i] )
+        }
+         */
     }
 
 }

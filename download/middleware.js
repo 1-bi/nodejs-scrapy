@@ -21,12 +21,12 @@ class DownloaderMiddlewareManager extends middleware.MiddlewareManager {
     download( downloadFunc , request, spider ) {
 
         function process_response(response) {
-
+            return response
         }
 
         //  处理 Exception
         function process_exception(_failure) {
-
+            return _failure
         }
 
         // execute method call back ---
@@ -37,19 +37,13 @@ class DownloaderMiddlewareManager extends middleware.MiddlewareManager {
         args.push(request)
         args.push(spider)
 
-        let promise  = callbackFn.apply(callObj , args)
-        promise.then( process_response, process_exception )
+        let dfd   = callbackFn.apply(callObj , args)
+        // --- check deferred class type ---
+        dfd.addCallback( process_response )
+        dfd.addErrback( process_exception )
 
+        return dfd
 
-        return promise
-
-        /*
-
-        let deferred = utils.mustbeDeferred(process_request ,  request )
-        deferred.addErrback( process_exception );
-        deferred.addCallbacks(process_response);
-        */
-        //return deferred
     }
 
     static _get_mwlist_from_settings( settings ) {

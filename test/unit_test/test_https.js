@@ -2,7 +2,7 @@ var assert = require('chai').assert
 var expect = require('chai').expect
 const farmhash = require('farmhash')
 require('chai').should()
-
+const superagentInst = require('superagent');
 var https = require('https')
 
 const {Crawler, Spider, Scheduler , Settings} = require('../..')
@@ -28,9 +28,63 @@ describe('Https', function(){
 
     describe('#simple_test1', function(){
 
-         hash = farmhash.hash32( Buffer.from('http://www.126.com/139?hteo=335499'))
-        console.log( hash)
+        let builder = superagentInst.get( 'http://www.126.com' )
 
+
+
+
+        it('should return o5555k when test finished', function(done){
+            builder.then( (res) => {
+                console.log("error ------------- ")
+
+
+                console.log( res )
+
+
+            }).catch(err => {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                // err.message, err.response
+                console.log("error ------------- ")
+                console.log( err )
+            })
+            //expect(foo).to.equal('bar');
+            done()
+        })
 
 
     })

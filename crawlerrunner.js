@@ -37,16 +37,16 @@ class CrawlerRunner {
 
     /**
      *
-     * Run a crawler with the provided arguments.
+     * Run a spider with the provided arguments.
      It will call the given Crawler's :meth:`~Crawler.crawl` method, while
      keeping track of it so it can be stopped later.
-     If ``crawler_or_spidercls`` isn't a :class:`~scrapy.crawler.Crawler`
+     If ``crawler_or_spidercls`` isn't a :class:`~scrapy.spider.Crawler`
      instance, this method will try to create one using this parameter as
      the spider class given to it.
      Returns a deferred that is fired when the crawling is finished.
-     :param crawler_or_spidercls: already created crawler, or a spider class
+     :param crawler_or_spidercls: already created spider, or a spider class
      or spider's name inside the project to create it
-     :type crawler_or_spidercls: :class:`~scrapy.crawler.Crawler` instance,
+     :type crawler_or_spidercls: :class:`~scrapy.spider.Crawler` instance,
      :class:`~scrapy.core.Spider` subclass or string
      :param list args: arguments to initialize the spider
      :param dict kwargs: keyword arguments to initialize the spider
@@ -80,7 +80,7 @@ class CrawlerRunner {
     }
 
     /**
-     *        Return a :class:`~scrapy.crawler.Crawler` object.
+     *        Return a :class:`~scrapy.spider.Crawler` object.
      * If ``crawler_or_spidercls`` is a Crawler, it is returned as-is.
      * If ``crawler_or_spidercls`` is a Spider subclass, a new Crawler
      is constructed for it.

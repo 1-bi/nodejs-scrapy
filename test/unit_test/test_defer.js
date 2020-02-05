@@ -39,7 +39,7 @@ describe('Defer', function(){
 
 
         let defer = new utils.Deferred()
-        defer.addCallbacks( callback1  )
+        defer.addCallback( callback1  )
 
 
         //let actual = slot.getStartRequests()

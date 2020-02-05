@@ -1,6 +1,7 @@
 const url = require('url')
 const reactor = require('./reactor')
 const defer = require('./defer')
+const err = require('../err')
 
 
 function isFunctionC(object) {
@@ -132,9 +133,18 @@ function parseBoolean (string) {
 }
 
 
+function mustbeDeferred( dfd  ) {
+    if ( typeof(dfd) == 'undefined' || ! dfd instanceof defer.Deferred) {
+        let msg = "The class provided is not a 'defer.Deferred',please check it."
+        throw new err.NotbeDeferError(msg)
+    }
+    return dfd
+}
+
+
 module.exports = {
     Deferred : defer.Deferred ,
-    //mustbeDeferred  : mustbeDeferred ,
+    mustbeDeferred  : mustbeDeferred ,
     isFunctionC : isFunctionC,
     loadObjectCls : loadObjectCls,
     urlparseCached : urlparseCached ,
