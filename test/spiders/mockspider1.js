@@ -16,6 +16,17 @@ class MockSpider1 extends Spider {
         return startReqs
     }
 
+    /**
+     * implement spider module
+     * @param response
+     */
+    parse( response ) {
+
+    }
+
+
+
+
 }
 
 

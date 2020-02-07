@@ -8,6 +8,7 @@ const logger = pino({
 const utils = require('../utils')
 const scraper = require('./scraper')
 const EventEmitter = require('events')
+const reqs = require('../http/request')
 
 /**
  * 指定特定的事件定义值
@@ -44,7 +45,7 @@ class StopEngineListener {
             if (self._stopSignals) {
                 clearTimeout( currentThread )
             }
-        }, self._timeout)
+        }, self._t_handle_downloader_outputimeout)
     }
 
     stopAndExist( result ) {
@@ -474,8 +475,8 @@ class ExecutionEngine {
 
 
         dfd.addBoth( function( response  ) {
-            self._handle_downloader_output( response , request , spider  )
-
+            let hdfd = self._handle_downloader_output( response , request , spider  )
+            //hdfd.callback( response  )
         })
         dfd.addBoth(function() {
             slot.removeRequest( request )
@@ -491,9 +492,14 @@ class ExecutionEngine {
     _handle_downloader_output(response, request, spider) {
         let self = this
 
+        // downloader middleware can return requests (for example, redirects)
+        if (response instanceof reqs.Request) {
+            // --- crawl response
+            self.crawl(response , spider )
+        }
+
         //  response is a Response or Failure
-        //let dfd = self._scraper.enqueueScrape( response , request , spider  )
-        let dfd = null
+        let dfd = self._scraper.enqueueScrape( response , request , spider  )
 
         return dfd
 

@@ -1,3 +1,4 @@
+const util = require('util')
 const req = require('../http/request')
 const signals = require('../signals')
 const err = require('../err')
@@ -82,7 +83,8 @@ class Spider {
      * @param response
      */
     parse(response) {
-
+        let msg = util.format('%s.parse callback is not defined','NoImplementParse')
+        throw new err.NotImplmentError( msg  )
     }
 
     _set_crawler( crawler ) {

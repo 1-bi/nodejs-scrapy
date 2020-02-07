@@ -88,12 +88,19 @@ function deferResult(  result ) {
         return result
     }
     else if ( result instanceof Error    ) {
+        let d = new defer.Deferred( 0  )
+        setTimeout(function() {
+            d.errback( result )
+        },0)
+        return d
 
     } else {
         // --- create new defer ---
-        let d = new defer.Deferred( result  )
+        let d = new defer.Deferred( 0  )
+        setTimeout(function() {
+            d.callback( result )
+        },0)
         return d
-
     }
 
 }

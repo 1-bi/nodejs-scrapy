@@ -7,7 +7,7 @@ const farmhash = require('farmhash')
  */
 class Request {
 
-    constructor( url ) {
+    constructor( url ,options , callbacks) {
         let self = this
         self._encoding =  "UTF-8"
         self._method = "GET"
@@ -57,6 +57,21 @@ class Request {
         return self._headers
     }
 
+    setCallback( callback ) {
+        if (typeof(callback) != 'function') {
+            throw new Error('The type of callback inputed is not function')
+        }
+        let self = this
+        self._callback = callback
+    }
+
+    setErrback( errback ) {
+        if (typeof(errback) != 'function') {
+            throw new Error('The type of callback inputed is not function')
+        }
+        let self = this
+        self._errback = errback
+    }
 
     _set_url(url) {
         let self = this

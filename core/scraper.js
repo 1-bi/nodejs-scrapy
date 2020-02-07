@@ -1,6 +1,7 @@
 const Promise = require("bluebird")
 const utils = require('../utils')
 const SpiderMiddlewareManager = require('./spidermw')
+const res = require('../http/response')
 
 // constant size
 const Constant = {
@@ -34,27 +35,31 @@ class Slot {
         let self = this
         let reqHash = request.getReqHash()
 
-        self._active_size = Math.max(response[0].getHtml().length, Constant.MIN_RESPONSE_SIZE)
+        let dfd = new utils.Deferred(0)
 
-        // --- create new promise
-        let promise = new Promise(function( resolve , reject ) {
-
-            // --- check request ---
-            if ( !self._active[ reqHash ] ) {
-                //  --- add request ---
-                self._active[ reqHash ] = request
-            }
-            else {
-                // show log ---
-                console.log( 'reqest exist ' )
-            }
-
-            self._active_size = 100
-
-            resolve()
+        self._queue.push({
+            'response': response,
+            'request': request,
+            'deferred': dfd
         })
+        if (response instanceof res.Response ) {
+            self._active_size += Math.max(response.getHtml().length, Constant.MIN_RESPONSE_SIZE)
+        } else {
+            self._active_size +=  Constant.MIN_RESPONSE_SIZE
+        }
 
-        return promise
+        // --- check request ---
+        if ( !self._active[ reqHash ] ) {
+            //  --- add request ---
+            self._active[ reqHash ] = request
+        }
+        else {
+            // show log ---
+            console.log( 'reqest exist ' )
+        }
+
+
+        return dfd
 
     }
 
@@ -163,16 +168,18 @@ class Scraper {
     enqueueScrape(response, request , spider) {
         let self = this
         let slot = self._slot
-        var promise  = slot.addResponseRequest(response , request )
+        let dfd = slot.addResponseRequest(response , request )
 
         function finishScraping() {
-            slot.finishResponse(response, request);
-            self._checkIfClosing(spider , slot );
-            self._scrape_next(spider , slot );
+            slot.finishResponse(response, request)
+            self._checkIfClosing(spider , slot )
+            self._scrape_next(spider , slot )
         }
-        promise.finally( finishScraping )
+        dfd.addBoth( finishScraping )
 
-        return promise
+        self._scrape_next(spider, slot)
+
+        return dfd
 
     }
 
@@ -193,35 +200,46 @@ class Scraper {
         let self = this
 
         while ( slot.getQueue().length > 0) {
-
             let queueObj = slot.getQueue().shift()
-
-            let dfd = self._scrape(  queueObj['response'] , queueObj['request'] , spider  )
+            let dfd = self._scrape(  queueObj['response'] , queueObj['request'] , spider , queueObj['deferred']  )
+            /*
             if ( queueObj['deferred'] ) {
                 dfd.chainDeferred( queueObj['deferred'] )
             }
+
+             */
         }
 
 
     }
 
-    _scrape(response , request , spider ) {
+    _scrape(response , request , spider , deferred ) {
         let self = this
         // Handle the downloaded response or failure through the spider  callback/errback
 
-        let promise = self._do_scrape( response , request ,spider )
-
+        let dfd = self._do_scrape( response , request ,spider , deferred)
+        dfd.addErrback(self.handle_spider_error, request, response, spider)
+        dfd.addCallback(self.handle_spider_output, request, response, spider)
         // --- add defer call back ---
-
-
+        return dfd
     }
 
-    _do_scrape( response, request, spider ) {
+    /**
+     * replace scrape2 method
+     * @param response
+     * @param request
+     * @param spider
+     * @returns {null}
+     * @private
+     */
+    _do_scrape( response, request, spider , deferred) {
         let self = this
+
         let dfd = null
         // Handle the different cases of request's result been a Response or a Failure
-        if ( ! response instanceof Error ) {
-            // --- scrape response
+        if ( !(response instanceof Error) ) {
+            // --- scrape response ---
+            dfd = self._spidermw.scrapeResponse( self.callSpider, response, request, spider)
         } else {
             // --- add call spider ---
             dfd = self.callSpider( response , request ,spider  )
@@ -240,21 +258,25 @@ class Scraper {
         // --- create new defer ---
         let dfd = utils.deferResult( result )
 
-        let callback = spider['spider']
+        function callSpiderParse(response) {
+            if (request._callback) {
+                request._callback( result )
+            }
 
-        if (callback) {
-            // -- add defer call back --
-            dfd.addCallback( callback )
+            spider.parse( response  )
         }
 
-        dfd.addCallback( utils.arraySpiderOutput )
+        dfd.addCallback( callSpiderParse )
+        dfd.addErrback( function(failure) {
+            if (request._errback) {
+                request._errback( failure )
+            }
+        })
 
         return dfd
 
 
     }
-
-
 
 
     _process_spidermw_output(output , request , response , spider) {
