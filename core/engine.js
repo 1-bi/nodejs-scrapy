@@ -476,7 +476,6 @@ class ExecutionEngine {
 
         dfd.addBoth( function( response  ) {
             let hdfd = self._handle_downloader_output( response , request , spider  )
-            //hdfd.callback( response  )
         })
         dfd.addBoth(function() {
             slot.removeRequest( request )

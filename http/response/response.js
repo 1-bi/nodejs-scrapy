@@ -13,6 +13,10 @@ class  Response {
         self._headers = {}
     }
 
+    buildResponse() {
+
+    }
+
     getRequest() {
         let self = this
         return self._request
@@ -50,6 +54,8 @@ class  Response {
         self._statusCode = statusCode
         return self
     }
+
+
 
 
 }

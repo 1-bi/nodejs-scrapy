@@ -2,12 +2,19 @@ const Promise = require("bluebird")
 const utils = require('../utils')
 const SpiderMiddlewareManager = require('./spidermw')
 const res = require('../http/response')
+const req = require('../http/request')
+const utils_req = require('../utils/request')
+const EventEmitter = require('events')
 
 // constant size
 const Constant = {
     'MIN_RESPONSE_SIZE': 1024
 }
 
+/**
+ * 定义标准事件和对应的 call back 处事
+ */
+class ScraperEmitter extends EventEmitter {}
 
 /**
  * Scraper slog
@@ -134,15 +141,19 @@ class Scraper {
 
         let itemproc_cls = utils.loadObjectCls( crawler.getSettings().getProperty('ITEM_PROCESSOR'), './' )
 
-        console.log( itemproc_cls )
         // --- load object property ---
         self._itemproc = itemproc_cls.fromCrawler(crawler)
 
+        self._emitter = new ScraperEmitter()
 
         self._init()
     }
 
     _init() {
+        let self = this
+        self._emitter.on('_add_request',function(request, spider ) {
+            self._process_append_request.apply(self, [request, spider])
+        })
 
     }
 
@@ -183,10 +194,17 @@ class Scraper {
 
     }
 
+    /**
+     * 该方法如果参提高并行处理，应使用多线程模式处理
+     * @param result
+     * @param request
+     * @param response
+     * @param spider
+     */
     handleSpiderOutput(result , request , response , spider) {
         let self = this
         // calll middle process
-        _process_spidermw_output(null , request , response , spider )
+        self._process_spidermw_output(result  , request , response , spider )
     }
 
     // ------------ private method -----------
@@ -202,11 +220,11 @@ class Scraper {
         while ( slot.getQueue().length > 0) {
             let queueObj = slot.getQueue().shift()
             let dfd = self._scrape(  queueObj['response'] , queueObj['request'] , spider , queueObj['deferred']  )
+
             /*
             if ( queueObj['deferred'] ) {
                 dfd.chainDeferred( queueObj['deferred'] )
             }
-
              */
         }
 
@@ -219,7 +237,11 @@ class Scraper {
 
         let dfd = self._do_scrape( response , request ,spider , deferred)
         dfd.addErrback(self.handle_spider_error, request, response, spider)
-        dfd.addCallback(self.handle_spider_output, request, response, spider)
+
+        dfd.addCallback(function( result  ) {
+            self.handleSpiderOutput(result,request, response, spider)
+        })
+
         // --- add defer call back ---
         return dfd
     }
@@ -239,17 +261,24 @@ class Scraper {
         // Handle the different cases of request's result been a Response or a Failure
         if ( !(response instanceof Error) ) {
             // --- scrape response ---
-            dfd = self._spidermw.scrapeResponse( self.callSpider, response, request, spider)
+            dfd = self._spidermw.scrapeResponse( {
+                fn: self.callSpider,
+                ref: self
+            }, response, request, spider)
         } else {
-            // --- add call spider ---
+            // --- add call spider , add error message  ---
             dfd = self.callSpider( response , request ,spider  )
             dfd.addErrback( self._log_download_errors )
         }
+
+
         return dfd
 
     }
 
     callSpider ( result , request , spider ) {
+        let self  = this
+
         // --- define request ----
         if ( !result['request'] ) {
             result['request'] = request
@@ -257,15 +286,20 @@ class Scraper {
 
         // --- create new defer ---
         let dfd = utils.deferResult( result )
-
+        // different from python scrapy
         function callSpiderParse(response) {
-            if (request._callback) {
-                request._callback( result )
-            }
 
-            spider.parse( response  )
+            if ( typeof(request._callback) != 'undefined'  ) {
+                request._callback( response )
+
+            } else {
+                let result = spider.parse( response  )
+                if ( result instanceof utils_req.RequestArray ) {
+                    self._emitter.emit('_add_request' , result , spider )
+                }
+
+             }
         }
-
         dfd.addCallback( callSpiderParse )
         dfd.addErrback( function(failure) {
             if (request._errback) {
@@ -278,15 +312,28 @@ class Scraper {
 
     }
 
+    /**
+     * 该功能与 scrapy 不同，添加新发现在 scheduler 服务
+     * @param requestArray
+     * @param spider
+     * @private
+     */
+    _process_append_request(requestArray , spider) {
+        let self = this
+        for (let i = 0 ; i < requestArray.length ; i++) {
+            self._crawler._engine.crawl(requestArray[i] , spider )
+        }
+    }
+
 
     _process_spidermw_output(output , request , response , spider) {
         let self = this
-
         // --- process request spider ----
         // Process each Request/Item (given in the output parameter) returned from the given spider
-        if ( output instanceof Request ) {
+        if ( output instanceof req.Request ) {
+
             self._crawler.getEngine().crawl(ouput , spider );
-        } else if ( output == null || ouput == undefined) {
+        } else if ( output == null || output == undefined) {
             return
         } else {
 

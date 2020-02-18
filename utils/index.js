@@ -149,6 +149,30 @@ function mustbeDeferred( dfd  ) {
 }
 
 
+function urljoin(preurl , appendurl) {
+
+    let tmpUrl = new URL( preurl )
+
+    let renewTmp = tmpUrl.protocol + '//' + tmpUrl.host
+
+    if ( tmpUrl.port ) {
+        renewTmp = renewTmp + ':' + tmpUrl.port
+    }
+
+    if ( appendurl.startsWith('/') ) {
+        renewTmp = renewTmp + appendurl
+    }
+    else {
+
+        throw new Error('message error ')
+
+    }
+
+
+    return renewTmp
+}
+
+
 module.exports = {
     Deferred : defer.Deferred ,
     mustbeDeferred  : mustbeDeferred ,
@@ -160,5 +184,6 @@ module.exports = {
     deferResult: deferResult,
     arraySpiderOutput: arraySpiderOutput,
     parseBoolean: parseBoolean,
-    CallLaterOnce : reactor.CallLaterOnce
+    CallLaterOnce : reactor.CallLaterOnce,
+    urljoin: urljoin
 };

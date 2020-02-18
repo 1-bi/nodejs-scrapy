@@ -16,6 +16,7 @@ class Spider {
 
     /**
      * interface method, should be implement for sub class
+     * all request start from interface method
      * @returns {*[]}
      */
     startRequests() {
@@ -95,8 +96,7 @@ class Spider {
         // --- execute spider implement method ----
         let startRequests = self.startRequests()
         self.setStartUrls( startRequests )
-        // --- append method end ---------
-
+        // --- append metho
         crawler._signals.connect(self.close, signals.spider_closed)
     }
 

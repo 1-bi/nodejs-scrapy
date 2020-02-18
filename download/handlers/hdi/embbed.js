@@ -8,6 +8,7 @@ const logger = pino({
 const superagentInst = require('superagent');
 const response = require('../../../http/response')
 const utils = require("../../../utils")
+const ResponseTypes = require('../../../responsetypes')
 
 class EmbbedHttpsDownloadHandler {
 
@@ -71,7 +72,8 @@ class SuperAgent {
         builder.then( (res) => {
             //do something
             // --- create new response ---
-            let resp = new response.Response( request )
+            let respCls = ResponseTypes.fromMimetype( res.headers['content-type'] )
+            let resp = new respCls( request  )
             resp._setStatus( res.statusCode  )
             resp._setHtml( res.text )
 
@@ -82,6 +84,10 @@ class SuperAgent {
                     logger.debug('Return no header from response. ')
                 }
             }
+
+            // buile response
+            resp.buildResponse( res  )
+
             // --- call back defer ---
             defer.callback( resp )
         }).catch( (err) => {

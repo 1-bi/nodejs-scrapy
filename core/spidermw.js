@@ -12,15 +12,30 @@ class SpiderMiddlewareManager extends middleware.MiddlewareManager{
     }
 
 
-    scrapeResponse( scrape_func, response, request, spider ) {
+    scrapeResponse( scrape_obj, response, request, spider ) {
 
         function process_spider_input( response ) {
-            return scrape_func(response, request, spider)
+
+            let callObj = scrape_obj['ref']
+            let callbackFn = scrape_obj['fn']
+
+            let args = []
+            args.push(response)
+            args.push(request)
+            args.push(spider)
+            return callbackFn.apply(callObj , args)
         }
 
         let dfd = utils.mustbeDeferred( process_spider_input(response) )
         //dfd.addCallbacks(callback=process_spider_output, errback=process_spider_exception)
         return dfd
+
+    }
+
+    processStartRequests( startRequests, spider ) {
+        let self = this
+        let reqs = self._process_chain('process_start_requests', start_requests, spider)
+        return reqs
 
     }
 
