@@ -41,10 +41,7 @@ class Slot{
             //  --- add request ---
             self._active[ reqHash ] = request
         }
-        else {
-            // show log ---
-            console.log( 'reqest exist ' )
-        }
+
     }
 
     addReqToTransferring( request ) {
@@ -54,10 +51,6 @@ class Slot{
         if ( !self._transferring[ reqHash ] ) {
             //  --- add request ---
             self._transferring[ reqHash ] = request
-        }
-        else {
-            // show log ---
-            console.log( 'reqest exist ' )
         }
     }
 
@@ -226,10 +219,6 @@ class Downloader {
         if ( !self._active[ reqHash ] ) {
             //  --- add request ---
             self._active[ reqHash ] = request
-        }
-        else {
-            // show log ---
-            console.log( 'reqest exist ' )
         }
     }
 

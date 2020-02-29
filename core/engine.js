@@ -4,7 +4,8 @@ const logger = pino({
         levelFirst: true
     },
     prettifier: require('pino-pretty')
-});
+})
+const util = require('util')
 const utils = require('../utils')
 const scraper = require('./scraper')
 const EventEmitter = require('events')
@@ -22,39 +23,6 @@ const EngineEvent = {
  * 定义标准事件和对应的 call back 处事
  */
 class EngineEmitter extends EventEmitter {}
-
-
-class StopEngineListener {
-    // update constructor
-    constructor( timeout = 1000) {
-
-        let self = this
-
-        self._timeout = timeout
-
-        self._stopSignals = false // --- 没有接收到信号
-
-        self._run()
-    }
-
-    _run() {
-        let self = this
-
-        let currentThread = setInterval(() => {
-
-            if (self._stopSignals) {
-                clearTimeout( currentThread )
-            }
-        }, self._t_handle_downloader_outputimeout)
-    }
-
-    stopAndExist( result ) {
-        let self = this
-        self._stopSignals = true
-
-    }
-
-}
 
 
 /**
@@ -105,11 +73,11 @@ class Slot {
     close() {
         let self = this
         // --- close object ---
-        self._closing = true
+        self._closing = new utils.Deferred()
         self._mayBeFireClosing()
     }
 
-    getClose() {
+    getClosing() {
         let self = this
         return self._closing
     }
@@ -141,12 +109,18 @@ class Slot {
 
     _mayBeFireClosing() {
         let self = this
-        if (self._closing && (self._inprogress === undefined || self._inprogress.length == 0)) {
+
+        if (self._closing && (self._inprogress === undefined || Object.keys( self._inprogress ).length == 0)) {
 
             // --- 检查 nextCall 是否不为空，若存在，就直接cancel ---
             if (self._nextcall) {
-                self._nextcall.cancel();
+                self._nextcall.cancel()
             }
+
+            if (self._scheduler.mqs._queue.length == 0 ) {
+                self._closing.callback('Close slot')
+            }
+
 
         }
 
@@ -255,9 +229,12 @@ class ExecutionEngine {
     stop() {
         let self = this
         // --- 检查 stop running
-        if (self.running) {
-            self.running = false
+        if (self._running) {
+            self._running = false
         }
+
+        let dfd = self._close_all_spiders()
+
         self._finish_stopping_engine()
 
     }
@@ -271,10 +248,32 @@ class ExecutionEngine {
 
     }
 
+    /**
+     * Close the execution engine gracefully.
+     If it has already been started, stop it. In all cases, close all spiders
+     and the downloader.
+     * @returns {void|!Promise<!Buffer>|!Promise<!Array<!CoverageEntry>>|*}
+     */
     close() {
+        let self = this
+        if (self._running ) {
+            // # Will also close spiders and downloader
+            return self.stop()
+        }
+        else if (self.openSpiders().length > 0) {
+            //# Will also close downloader
+            return self._close_all_spiders()
+        } else {
+            return self.downloader.close()
+        }
 
     }
 
+    /**
+     * 根据每个请求，编排添加的请求队列服务
+     * @param request
+     * @param spider
+     */
     schedule(request, spider) {
         let self = this
         // --- call schedule , enqueueRequest
@@ -351,9 +350,11 @@ class ExecutionEngine {
                 return
             }
 
-            // neet to backout , loop for scheduler
+
+            // need to backout , loop for pendding query
             while (!self._needs_backout( _spider)) {
                 let dfd  = self._next_request_from_scheduler( _spider )
+
                 //  check the promise exist or not , promise handle
                 if (!dfd) {
                     break
@@ -388,13 +389,36 @@ class ExecutionEngine {
 
     }
 
+    /**
+     * 检查当前 spider 的服务日否已经空闲
+     * @param spider
+     * @returns {boolean}
+     */
     spiderIsIdle( spider ) {
         let self = this
         let result = true
+        // --- check scraper slot is idle
+        // # scraper is not idle
+        let scraper = self._scraper
+        if ( ! scraper._slot.isIdle() ) {
+            return false
+        }
 
-        // # downloader has pending requests
+        // --- downloader has pending requests
         let lenDownloaderActive =  utils.lengthSetObj( self._downloader.getActive() )
         if ( !lenDownloaderActive  ) {
+            return false
+        }
+
+        // --- not all start requests are handled ---
+        let startReqs = self._slot.getStartRequests()
+        if (startReqs.length > 0) {
+            return false
+        }
+
+        // --- scheduler has pending requests
+        let scheduler = self._slot.getScheduler()
+        if (scheduler.hasPendingrequests() ) {
             return false
         }
 
@@ -420,7 +444,7 @@ class ExecutionEngine {
         let self = this
         if ( self.spiderIsIdle( spider ) ) {
             // --- close spider and finish ---
-            self.closeSpider( spider, 'finished')
+            self.closeSpider( spider, 'finished running task')
         }
 
     }
@@ -437,12 +461,15 @@ class ExecutionEngine {
         let self = this
         let slot = self._slot
 
-
-        if ( slot.getClose() ) {
-            return slot.getClose()
+        // --- return closing dfd ,when the dfd exist
+        if ( slot.getClosing() ) {
+            return slot.getClosing()
         }
 
-        // --- close slot ----
+        let returnMsg = util.format('Closing spider (%s) ' , reason )
+        logger.info( returnMsg )
+
+        // --- close current slot  ----
         slot.close()
 
     }
@@ -457,7 +484,14 @@ class ExecutionEngine {
         let backout = false
         let slot = self._slot
 
+        // --- run message ---
         backout = !self._running || slot._closing || self._downloader.needsBackout() || self._scraper._slot.needsBackout()
+        let msg = 'running=' + self._running +' , '
+        msg = msg + '_closing=' +  slot._closing + ', '
+        msg = msg + '_downloader.needsBackout=' + self._downloader.needsBackout() + ' , '
+        msg = msg + '_scraper.needsBackout=' + self._scraper._slot.needsBackout()
+
+        console.log( msg  + ' result -> ' + backout)
         return backout
     }
 
@@ -472,7 +506,6 @@ class ExecutionEngine {
         }
 
         let dfd = self._download(request, spider)
-
 
         dfd.addBoth( function( response  ) {
             let hdfd = self._handle_downloader_output( response , request , spider  )
@@ -517,9 +550,10 @@ class ExecutionEngine {
 
         function _on_complete() {
 
+
             // --- fire event when the nextcall start
             slot.getNextcall().schedule()
-            //self._emitter.emit(EngineEvent.CLOSE)
+            self._emitter.emit(EngineEvent.CLOSE)
         }
 
 
@@ -533,16 +567,20 @@ class ExecutionEngine {
     }
 
     _downloaded(reqponse, slot, request, spider) {
-        slot.removeRequest(request);
+        slot.removeRequest(request)
+
+        if (reqponse instanceof req.Request ) {
+            console.log(' is request ')
+        }
+
     }
 
     // --- class stop engine
     _finish_stopping_engine () {
         let self = this
 
+        self._closewait.callback( 'close engine' )
 
-        // --- call method without method
-        //self._closewait.stopAndExist()
     }
 
 }

@@ -37,7 +37,6 @@ class Slot {
 
     }
 
-
     addResponseRequest(response , request ) {
         let self = this
         let reqHash = request.getReqHash()
@@ -61,8 +60,7 @@ class Slot {
             self._active[ reqHash ] = request
         }
         else {
-            // show log ---
-            console.log( 'reqest exist ' )
+            // ---- request exist in active query
         }
 
 
@@ -102,7 +100,7 @@ class Slot {
     }
 
 
-    isIdel() {
+    isIdle() {
         let self = this
         // --- check queue is zero
         // active counter is zero

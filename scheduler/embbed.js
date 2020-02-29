@@ -45,9 +45,14 @@ class EmbbedScheduler {
         if (request) {
             // --- add state count
         }
-
-
         return request
+    }
+
+
+    hasPendingrequests() {
+        let self = this
+        // ---- check the request in mqs ---
+        return self.mqs.length() > 0
 
     }
 
@@ -77,7 +82,6 @@ class EmbbedScheduler {
             self.mqs.pushAll(reqs)
         } else {
             self.mqs.push(reqs)
-
         }
 
         //self.mqs.push( reqs )

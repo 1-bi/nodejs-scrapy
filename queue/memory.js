@@ -30,6 +30,11 @@ class Memory {
         self._queue = self._queue.concat( objArray )
     }
 
+    length() {
+        let self = this
+        return self._queue.length
+    }
+
 
 }
 

@@ -69,9 +69,12 @@ class CrawlerRunner {
         let d = crawler.crawl( args, kwargs )
         self._active.push( d )
 
-
         let _done = function(result) {
-            self.crawlers.discard( crawler )
+            let loc = self._crawlers.indexOf( crawler )
+            if (loc > -1) {
+                delete self._crawlers[loc]
+            }
+            //self._crawlers.discard( crawler )
             return result
         }
         return d.addBoth( _done )
